@@ -1,12 +1,19 @@
 import { Header } from "./Header";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useTheme } from "@/hooks/useTheme";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  useKeyboardShortcuts();
+  const { theme } = useTheme();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-dark via-primary to-secondary relative">
+    <div className={`min-h-screen bg-gradient-to-br from-primary-dark via-primary to-secondary relative ${
+      theme === 'dark' ? 'dark' : ''
+    }`}>
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
       <Header />
       <main className="pt-20 pb-8 relative">

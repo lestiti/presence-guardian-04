@@ -3,10 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Download, Filter } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
+import { Download, Filter, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { RoleFilter } from "@/components/users/RoleFilter";
+import { useTheme } from "@/hooks/useTheme";
+import { usePDF } from "react-to-pdf";
 
 const Reports = () => {
   const [selectedSynod, setSelectedSynod] = useState<string>("all");
@@ -21,21 +23,30 @@ const Reports = () => {
     { date: '22/03', présents: 70, absents: 30 },
   ];
 
-  const handleExport = () => {
-    toast.success("Export en cours...");
-    // Logique d'export à implémenter
+  const { theme } = useTheme();
+  const { toPDF, targetRef } = usePDF({filename: 'rapport-presence.pdf'});
+
+  const handleExportPDF = () => {
+    toPDF();
+    toast.success("Rapport exporté en PDF");
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={targetRef}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           Rapports de Présence
         </h1>
-        <Button onClick={handleExport} className="flex items-center gap-2">
-          <Download className="w-4 h-4" />
-          Exporter
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExport} className="flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            Exporter CSV
+          </Button>
+          <Button onClick={handleExportPDF} className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Exporter PDF
+          </Button>
+        </div>
       </div>
 
       <Card className="p-6">
@@ -96,6 +107,31 @@ const Reports = () => {
         </div>
       </Card>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Répartition par rôle</h2>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'MPIOMANA', value: 30 },
+                    { name: 'MPIANDRY', value: 25 },
+                    { name: 'MPAMPIANATRA', value: 20 },
+                    { name: 'IRAKA', value: 15 },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  label
+                />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Statistiques</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -113,6 +149,7 @@ const Reports = () => {
           </div>
         </div>
       </Card>
+      </div>
     </div>
   );
 };
