@@ -21,6 +21,7 @@ import { UserForm } from "@/components/users/UserForm";
 import { CodeDownloader } from "@/components/users/CodeDownloader";
 import { ExportButton } from "@/components/users/ExportButton";
 import { UserData } from "@/types/user";
+import { Synod } from "@/types/synod";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import ReactBarcode from "react-barcode";
@@ -28,10 +29,18 @@ import { generateUniqueQRCode, generateUniqueBarcode } from "@/utils/codeGenerat
 
 const ITEMS_PER_PAGE = 5;
 
+// Liste temporaire des synodes (à remplacer par une API)
+const SYNODS: Synod[] = [
+  { id: "1", name: "Synode Antananarivo", description: "Région d'Antananarivo" },
+  { id: "2", name: "Synode Antsirabe", description: "Région d'Antsirabe" },
+  { id: "3", name: "Synode Fianarantsoa", description: "Région de Fianarantsoa" },
+  { id: "4", name: "Synode Toamasina", description: "Région de Toamasina" },
+];
+
 const Users = () => {
   const [users, setUsers] = useState<UserData[]>([
-    { id: "1", name: "John Doe", role: "MPIOMANA", synod: "Synod A", phone: "+261340000001" },
-    { id: "2", name: "Jane Smith", role: "MPIANDRY", synod: "Synod B", phone: "+261340000002" },
+    { id: "1", name: "John Doe", role: "MPIOMANA", synod: "1", phone: "+261340000001" },
+    { id: "2", name: "Jane Smith", role: "MPIANDRY", synod: "2", phone: "+261340000002" },
   ]);
 
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
@@ -115,6 +124,11 @@ const Users = () => {
     setSelectedUser(null);
   };
 
+  const getSynodName = (synodId: string) => {
+    const synod = SYNODS.find(s => s.id === synodId);
+    return synod ? synod.name : synodId;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -161,7 +175,7 @@ const Users = () => {
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.phone}</TableCell>
                 <TableCell>{user.role}</TableCell>
-                <TableCell>{user.synod}</TableCell>
+                <TableCell>{getSynodName(user.synod)}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button 
@@ -211,6 +225,7 @@ const Users = () => {
             onSave={handleSaveUser}
             onCancel={() => setShowUserDialog(false)}
             isEdit={!!selectedUser}
+            synods={SYNODS}
           />
         </DialogContent>
       </Dialog>

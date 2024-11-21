@@ -1,7 +1,9 @@
 import { UserData } from "@/types/user";
+import { Synod } from "@/types/synod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SynodSelect } from "./SynodSelect";
 import {
   Select,
   SelectContent,
@@ -11,8 +13,6 @@ import {
 } from "@/components/ui/select";
 import {
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { isValidMadagascarPhone, formatPhoneNumber } from "@/utils/phoneValidation";
@@ -24,9 +24,10 @@ interface UserFormProps {
   onSave: () => void;
   onCancel: () => void;
   isEdit: boolean;
+  synods: Synod[];
 }
 
-export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: UserFormProps) => {
+export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit, synods }: UserFormProps) => {
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -68,10 +69,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
   };
 
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>{isEdit ? "Modifier l'utilisateur" : "Nouvel utilisateur"}</DialogTitle>
-      </DialogHeader>
+    <div className="space-y-4">
       <div className="space-y-4 py-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nom</Label>
@@ -116,13 +114,13 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
         </div>
         <div className="space-y-2">
           <Label htmlFor="synod">Synode</Label>
-          <Input
-            id="synod"
+          <SynodSelect
             value={formData.synod}
-            onChange={(e) => {
-              setFormData({ ...formData, synod: e.target.value });
+            onValueChange={(value) => {
+              setFormData({ ...formData, synod: value });
               setHasChanges(true);
             }}
+            synods={synods}
           />
         </div>
       </div>
@@ -134,6 +132,6 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
           {isEdit ? "Modifier" : "Créer"}
         </Button>
       </DialogFooter>
-    </>
+    </div>
   );
 };
