@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { QrReader } from "react-qr-reader";
 import { toast } from "sonner";
@@ -32,6 +32,18 @@ export const ScanDialog = ({
   const [lastProcessedCodes] = useState<Set<string>>(new Set());
   const [processingCode, setProcessingCode] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (open) {
+      setIsScanning(true);
+      toast.info("Scanner activé", {
+        description: scanType === "QR" ? "Placez un QR code devant la caméra" : "Utilisez un scanner de code-barres"
+      });
+    } else {
+      setIsScanning(false);
+    }
+  }, [open, scanType]);
 
   useEffect(() => {
     const getDevices = async () => {
@@ -98,14 +110,12 @@ export const ScanDialog = ({
     const handleKeyPress = (event: KeyboardEvent) => {
       const currentTime = Date.now();
 
-      // Si le délai entre les touches est trop long, on considère que c'est un nouveau code
       if (currentTime - lastKeyTime > SCANNER_TIMEOUT) {
         currentCode = "";
       }
       lastKeyTime = currentTime;
 
       if (event.key === "Enter" && currentCode) {
-        // Détecter si c'est un QR code ou un code-barres basé sur le format
         const scanType: ScanType = currentCode.startsWith("FIF") ? "BARCODE" : "QR";
         handleSuccessfulScan(currentCode, scanType);
         currentCode = "";
@@ -115,12 +125,14 @@ export const ScanDialog = ({
       currentCode += event.key;
     };
 
-    window.addEventListener("keypress", handleKeyPress);
+    if (isScanning) {
+      window.addEventListener("keypress", handleKeyPress);
+    }
 
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
     };
-  }, []);
+  }, [isScanning]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -128,6 +140,9 @@ export const ScanDialog = ({
         <DialogTitle>
           {direction === "IN" ? "Check-in" : "Check-out"} - {scanType === "QR" ? "QR Code" : "Code-barres"}
         </DialogTitle>
+        <DialogDescription>
+          {isScanning ? "Scanner actif - En attente d'un code..." : "Initialisation du scanner..."}
+        </DialogDescription>
         
         <div className="space-y-4">
           <div className="flex items-center justify-center space-x-2">
@@ -166,10 +181,17 @@ export const ScanDialog = ({
                 }}
                 className="w-full h-full"
               />
-              <div className="absolute inset-0 pointer-events-none border-4 border-primary/50 animate-pulse rounded-lg" />
+              <div className={`absolute inset-0 pointer-events-none border-4 ${
+                isScanning ? 'border-primary animate-pulse' : 'border-gray-300'
+              } rounded-lg`} />
               {showSuccess && (
                 <div className="absolute inset-0 flex items-center justify-center bg-green-500/20 backdrop-blur-sm">
                   <CheckCircle2 className="w-24 h-24 text-green-500 animate-in zoom-in duration-300" />
+                </div>
+              )}
+              {isScanning && (
+                <div className="absolute top-2 right-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
                 </div>
               )}
             </div>
