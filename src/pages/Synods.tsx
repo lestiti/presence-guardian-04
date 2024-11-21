@@ -21,7 +21,7 @@ const Synods = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-secondary">Gestion des Synodes</h1>
-        <Button className="bg-primary hover:bg-primary-dark">
+        <Button className="bg-primary hover:bg-primary/90 transition-colors">
           <Grid className="w-4 h-4 mr-2" />
           Nouveau Synode
         </Button>
@@ -31,21 +31,31 @@ const Synods = () => {
         {synods.map((synod) => (
           <div
             key={synod.id}
-            className="card hover:shadow-lg transition-shadow duration-200"
+            className="bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-soft border border-white/20 hover:shadow-lg transition-all duration-200 animate-fade-in"
             style={{ borderTop: `4px solid ${synod.color}` }}
           >
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-xl font-semibold text-secondary">{synod.name}</h3>
+              <h3 className="text-2xl font-semibold tracking-tight text-secondary">
+                {synod.name}
+              </h3>
               <div className="flex space-x-2">
-                <Button variant="outline" size="icon">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  className="hover:bg-primary/10 transition-colors duration-200"
+                >
                   <Edit className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  className="hover:bg-destructive/10 transition-colors duration-200"
+                >
                   <Trash className="w-4 h-4" />
                 </Button>
               </div>
             </div>
-            <p className="text-secondary-light">
+            <p className="text-lg text-secondary/80 font-medium">
               {synod.memberCount} membres
             </p>
           </div>
