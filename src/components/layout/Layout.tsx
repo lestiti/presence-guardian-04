@@ -10,7 +10,7 @@ export const Layout = ({ children }: LayoutProps) => {
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
       <Header />
       <main className="pt-20 pb-8 relative">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 transition-all duration-300 hover:animate-zoom-hover">
           {children}
         </div>
       </main>
