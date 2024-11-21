@@ -6,6 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Download, Filter } from "lucide-react";
 import { toast } from "sonner";
+import { RoleFilter } from "@/components/users/RoleFilter";
 
 const Reports = () => {
   const [selectedSynod, setSelectedSynod] = useState<string>("all");
@@ -13,7 +14,6 @@ const Reports = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("month");
   const [startDate, setStartDate] = useState<Date>(new Date());
 
-  // Données d'exemple - À remplacer par des données réelles
   const mockData = [
     { date: '01/03', présents: 65, absents: 35 },
     { date: '08/03', présents: 75, absents: 25 },
@@ -55,18 +55,7 @@ const Reports = () => {
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-2">Fonction</label>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une fonction" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes les fonctions</SelectItem>
-                <SelectItem value="MPIOMANA">MPIOMANA</SelectItem>
-                <SelectItem value="MPIANDRY">MPIANDRY</SelectItem>
-                <SelectItem value="MPAMPIANATRA">MPAMPIANATRA</SelectItem>
-                <SelectItem value="IRAKA">IRAKA</SelectItem>
-              </SelectContent>
-            </Select>
+            <RoleFilter value={selectedRole} onChange={setSelectedRole} />
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-2">Période</label>
