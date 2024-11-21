@@ -1,12 +1,11 @@
 // Fonction pour générer un code unique pour le QR code
 export const generateUniqueQRCode = (userId: string): string => {
-  return `user-${userId}-${Date.now()}`;
+  return `user-${userId}`;
 };
 
 // Fonction pour générer un code barre unique commençant par FIF
 export const generateUniqueBarcode = (userId: string): string => {
-  // Prend l'ID utilisateur, le convertit en nombre et ajoute un timestamp
+  // Prend l'ID utilisateur et le convertit en nombre
   const numericPart = userId.replace(/\D/g, '');
-  const timestamp = Date.now().toString().slice(-4);
-  return `FIF${numericPart.padStart(4, '0')}${timestamp}`;
+  return `FIF${numericPart.padStart(8, '0')}`;
 };
