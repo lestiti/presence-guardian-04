@@ -37,6 +37,7 @@ import { UsersPagination } from "@/components/users/UsersPagination";
 import JSZip from "jszip";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
+import { generateUniqueQRCode, generateUniqueBarcode } from "@/utils/codeGenerators";
 
 interface UserData {
   id: string;
@@ -356,7 +357,7 @@ const Users = () => {
                 {selectedUser && (
                   <div id={`qr-${selectedUser.id}`}>
                     <QRCode
-                      value={`user-${selectedUser.id}`}
+                      value={generateUniqueQRCode(selectedUser.id)}
                       size={128}
                     />
                   </div>
@@ -369,9 +370,9 @@ const Users = () => {
                 {selectedUser && (
                   <div id={`barcode-${selectedUser.id}`}>
                     <ReactBarcode 
-                      value={`user-${selectedUser.id}`}
+                      value={generateUniqueBarcode(selectedUser.id)}
                       height={50}
-                      displayValue={false}
+                      displayValue={true}
                     />
                   </div>
                 )}
