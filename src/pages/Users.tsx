@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { User, QrCode, Trash, Edit } from "lucide-react";
+import { User, QrCode, Barcode, Trash, Edit } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import QRCode from "react-qr-code";
+import ReactBarcode from "react-barcode";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface UserData {
   id: string;
@@ -17,11 +25,15 @@ const Users = () => {
     { id: "1", name: "John Doe", role: "MPIOMANA", synod: "Synod A" },
     { id: "2", name: "Jane Smith", role: "MPIANDRY", synod: "Synod B" },
   ]);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [showCodesDialog, setShowCodesDialog] = useState(false);
 
-  const handleGenerateQR = (userId: string) => {
+  const handleGenerateCodes = (user: UserData) => {
+    setSelectedUser(user);
+    setShowCodesDialog(true);
     toast({
-      title: "QR Code généré",
-      description: "Le QR Code a été généré et peut être téléchargé",
+      title: "Codes générés",
+      description: "Les codes QR et barres ont été générés",
     });
   };
 
@@ -53,13 +65,18 @@ const Users = () => {
                 <TableCell>{user.synod}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="icon" onClick={() => handleGenerateQR(user.id)}>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => handleGenerateCodes(user)}
+                      className="hover:bg-primary/10"
+                    >
                       <QrCode className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" className="hover:bg-primary/10">
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" className="hover:bg-primary/10">
                       <Trash className="w-4 h-4" />
                     </Button>
                   </div>
@@ -69,6 +86,39 @@ const Users = () => {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={showCodesDialog} onOpenChange={setShowCodesDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Codes pour {selectedUser?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">QR Code</h3>
+              <div className="flex justify-center p-4 bg-white rounded-lg">
+                {selectedUser && (
+                  <QRCode
+                    value={`user-${selectedUser.id}`}
+                    size={128}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Code-barres</h3>
+              <div className="flex justify-center p-4 bg-white rounded-lg">
+                {selectedUser && (
+                  <ReactBarcode 
+                    value={`user-${selectedUser.id}`}
+                    height={50}
+                    displayValue={false}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
