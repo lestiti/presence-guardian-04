@@ -20,6 +20,7 @@ import { UsersPagination } from "@/components/users/UsersPagination";
 import { UserForm } from "@/components/users/UserForm";
 import { CodeDownloader } from "@/components/users/CodeDownloader";
 import { BulkActions } from "@/components/users/BulkActions";
+import { ImportUsers } from "@/components/users/ImportUsers";
 import { UserData } from "@/types/user";
 import { Synod } from "@/types/synod";
 import { toast } from "sonner";
@@ -128,11 +129,24 @@ const Users = () => {
     return synod ? synod.name : synodId;
   };
 
+  const handleImportUsers = (importedUsers: UserData[]) => {
+    const newUsers = importedUsers.map(user => ({
+      ...user,
+      id: (users.length + Math.random()).toString(),
+    }));
+    setUsers([...users, ...newUsers]);
+    toast.success(`${newUsers.length} utilisateurs importés avec succès`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-secondary">Gestion des Utilisateurs</h1>
         <div className="flex gap-2">
+          <ImportUsers 
+            onImport={handleImportUsers}
+            existingSynods={SYNODS.map(s => s.id)}
+          />
           <BulkActions users={users} />
           <Button 
             onClick={() => {
