@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Download, Filter } from "lucide-react";
 import { toast } from "sonner";
@@ -67,10 +67,11 @@ const Reports = () => {
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-2">Date de début</label>
-            <DatePicker
+            <Calendar
+              mode="single"
               selected={startDate}
               onSelect={(date) => date && setStartDate(date)}
-              className="w-full"
+              className="rounded-md border"
             />
           </div>
         </div>
