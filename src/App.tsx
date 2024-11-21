@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "./components/layout/Layout";
 import Index from "./pages/Index";
+import Users from "./pages/Users";
+import Synods from "./pages/Synods";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +19,8 @@ const App = () => (
         <Layout>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/synods" element={<Synods />} />
           </Routes>
         </Layout>
       </BrowserRouter>

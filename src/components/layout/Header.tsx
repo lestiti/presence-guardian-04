@@ -25,11 +25,15 @@ export const Header = () => {
             </Link>
             <Link to="/users" className="nav-link flex items-center space-x-2">
               <Users className="w-4 h-4" />
-              <span>Users</span>
+              <span>Utilisateurs</span>
+            </Link>
+            <Link to="/synods" className="nav-link flex items-center space-x-2">
+              <Grid className="w-4 h-4" />
+              <span>Synodes</span>
             </Link>
             <Link to="/reports" className="nav-link flex items-center space-x-2">
               <BarChart2 className="w-4 h-4" />
-              <span>Reports</span>
+              <span>Rapports</span>
             </Link>
           </nav>
 
