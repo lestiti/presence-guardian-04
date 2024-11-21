@@ -25,14 +25,14 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#10B981",
-          dark: "#064E3B",
-          light: "#D1FAE5",
+          DEFAULT: "#9b87f5",
+          dark: "#1A1F2C",
+          light: "#D6BCFA",
         },
         secondary: {
-          DEFAULT: "#1F2937",
-          dark: "#111827",
-          light: "#374151",
+          DEFAULT: "#7E69AB",
+          dark: "#6E59A5",
+          light: "#E5DEFF",
         },
       },
       fontFamily: {
@@ -40,6 +40,10 @@ export default {
       },
       boxShadow: {
         soft: "0 2px 15px rgba(0, 0, 0, 0.1)",
+        glass: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+      },
+      backdropBlur: {
+        glass: "blur(4px)",
       },
       keyframes: {
         "fade-in": {
