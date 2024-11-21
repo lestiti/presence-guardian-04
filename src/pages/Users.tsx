@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, QrCode, Barcode, Trash, Edit, Search } from "lucide-react";
+import { User, QrCode, Trash, Edit } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -31,15 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { SearchBar } from "@/components/users/SearchBar";
+import { RoleFilter } from "@/components/users/RoleFilter";
+import { UsersPagination } from "@/components/users/UsersPagination";
 
 interface UserData {
   id: string;
@@ -72,7 +66,7 @@ const Users = () => {
 
   // États pour la recherche et les filtres
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   // Gestionnaires d'événements
@@ -135,7 +129,7 @@ const Users = () => {
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.synod.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !roleFilter || user.role === roleFilter;
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
@@ -163,27 +157,8 @@ const Users = () => {
       </div>
 
       <div className="flex gap-4 mb-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Rechercher..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-            icon={<Search className="w-4 h-4" />}
-          />
-        </div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrer par rôle" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Tous les rôles</SelectItem>
-            <SelectItem value="MPIOMANA">MPIOMANA</SelectItem>
-            <SelectItem value="MPIANDRY">MPIANDRY</SelectItem>
-            <SelectItem value="MPAMPIANATRA">MPAMPIANATRA</SelectItem>
-            <SelectItem value="IRAKA">IRAKA</SelectItem>
-          </SelectContent>
-        </Select>
+        <SearchBar value={searchTerm} onChange={setSearchTerm} />
+        <RoleFilter value={roleFilter} onChange={setRoleFilter} />
       </div>
 
       <div className="card">
@@ -235,36 +210,11 @@ const Users = () => {
           </TableBody>
         </Table>
 
-        {totalPages > 1 && (
-          <div className="mt-4">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => setCurrentPage(page)}
-                      isActive={currentPage === page}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        <UsersPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {/* Modal pour créer/éditer un utilisateur */}
