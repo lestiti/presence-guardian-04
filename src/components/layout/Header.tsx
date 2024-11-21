@@ -33,10 +33,10 @@ export const Header = () => {
             </Link>
           </div>
           
-          <nav className={`${isMenuOpen ? 'block' : 'hidden'} lg:flex absolute lg:relative top-16 lg:top-0 left-0 right-0 bg-white/5 backdrop-blur-glass lg:bg-transparent shadow-glass lg:shadow-none p-4 lg:p-0 space-y-4 lg:space-y-0 lg:items-center lg:space-x-8 border border-white/20 lg:border-0`}>
+          <nav className={`${isMenuOpen ? 'block' : 'hidden'} lg:flex absolute lg:relative top-16 lg:top-0 left-0 right-0 bg-white lg:bg-transparent shadow-soft lg:shadow-none p-4 lg:p-0 space-y-4 lg:space-y-0 lg:items-center lg:space-x-8 border border-gray-200 lg:border-0`}>
             <Link 
               to="/" 
-              className="nav-link flex items-center space-x-2 text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-white/20 hover:text-white active:scale-95" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
               onClick={toggleMenu}
             >
               <Grid className="w-4 h-4" />
@@ -44,7 +44,7 @@ export const Header = () => {
             </Link>
             <Link 
               to="/users" 
-              className="nav-link flex items-center space-x-2 text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-white/20 hover:text-white active:scale-95" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
               onClick={toggleMenu}
             >
               <Users className="w-4 h-4" />
@@ -52,7 +52,7 @@ export const Header = () => {
             </Link>
             <Link 
               to="/synods" 
-              className="nav-link flex items-center space-x-2 text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-white/20 hover:text-white active:scale-95" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
               onClick={toggleMenu}
             >
               <Grid className="w-4 h-4" />
@@ -60,7 +60,7 @@ export const Header = () => {
             </Link>
             <Link 
               to="/attendance" 
-              className="nav-link flex items-center space-x-2 text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-white/20 hover:text-white active:scale-95" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
               onClick={toggleMenu}
             >
               <QrCode className="w-4 h-4" />
@@ -68,7 +68,7 @@ export const Header = () => {
             </Link>
             <Link 
               to="/reports" 
-              className="nav-link flex items-center space-x-2 text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-white/20 hover:text-white active:scale-95" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
               onClick={toggleMenu}
             >
               <BarChart2 className="w-4 h-4" />
@@ -76,7 +76,7 @@ export const Header = () => {
             </Link>
             <Link 
               to="/settings" 
-              className="nav-link flex items-center space-x-2 text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-white/20 hover:text-white active:scale-95" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
               onClick={toggleMenu}
             >
               <Settings className="w-4 h-4" />
