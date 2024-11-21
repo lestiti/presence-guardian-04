@@ -34,6 +34,12 @@ export default {
           dark: "#6E59A5",
           light: "#E5DEFF",
         },
+        gray: {
+          700: "#374151",
+          800: "#1f2937",
+          200: "#e5e7eb",
+          100: "#f3f4f6",
+        }
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],

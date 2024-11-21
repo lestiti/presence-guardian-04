@@ -30,4 +30,19 @@
   .btn-primary {
     @apply bg-primary text-white px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary-dark active:scale-95;
   }
+
+  /* New dropdown styles */
+  [data-radix-popper-content-wrapper] {
+    @apply z-50;
+  }
+
+  [role="menu"],
+  [role="listbox"] {
+    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg;
+  }
+
+  [role="menuitem"],
+  [role="option"] {
+    @apply text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2 text-sm cursor-pointer transition-colors duration-150;
+  }
 }
