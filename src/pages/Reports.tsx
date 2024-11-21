@@ -23,12 +23,24 @@ const Reports = () => {
     { date: '22/03', présents: 70, absents: 30 },
   ];
 
+  const pieData = [
+    { name: 'MPIOMANA', value: 30 },
+    { name: 'MPIANDRY', value: 25 },
+    { name: 'MPAMPIANATRA', value: 20 },
+    { name: 'IRAKA', value: 15 },
+  ];
+
   const { theme } = useTheme();
   const { toPDF, targetRef } = usePDF({filename: 'rapport-presence.pdf'});
 
   const handleExportPDF = () => {
     toPDF();
     toast.success("Rapport exporté en PDF");
+  };
+
+  const handleExportCSV = () => {
+    // Export CSV logic
+    toast.success("Rapport exporté en CSV");
   };
 
   return (
@@ -38,7 +50,7 @@ const Reports = () => {
           Rapports de Présence
         </h1>
         <div className="flex gap-2">
-          <Button onClick={handleExport} className="flex items-center gap-2">
+          <Button onClick={handleExportCSV} className="flex items-center gap-2">
             <Download className="w-4 h-4" />
             Exporter CSV
           </Button>
@@ -114,12 +126,9 @@ const Reports = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={[
-                    { name: 'MPIOMANA', value: 30 },
-                    { name: 'MPIANDRY', value: 25 },
-                    { name: 'MPAMPIANATRA', value: 20 },
-                    { name: 'IRAKA', value: 15 },
-                  ]}
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
@@ -132,23 +141,23 @@ const Reports = () => {
           </div>
         </Card>
 
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Statistiques</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-sm text-green-600">Taux de présence moyen</p>
-            <p className="text-2xl font-bold text-green-700">72.5%</p>
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Statistiques</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-green-50 p-4 rounded-lg">
+              <p className="text-sm text-green-600">Taux de présence moyen</p>
+              <p className="text-2xl font-bold text-green-700">72.5%</p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-blue-600">Total des présences</p>
+              <p className="text-2xl font-bold text-blue-700">290</p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <p className="text-sm text-purple-600">Événements</p>
+              <p className="text-2xl font-bold text-purple-700">4</p>
+            </div>
           </div>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-blue-600">Total des présences</p>
-            <p className="text-2xl font-bold text-blue-700">290</p>
-          </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <p className="text-sm text-purple-600">Événements</p>
-            <p className="text-2xl font-bold text-purple-700">4</p>
-          </div>
-        </div>
-      </Card>
+        </Card>
       </div>
     </div>
   );
