@@ -19,7 +19,7 @@ import { SynodFilter } from "@/components/users/SynodFilter";
 import { UsersPagination } from "@/components/users/UsersPagination";
 import { UserForm } from "@/components/users/UserForm";
 import { CodeDownloader } from "@/components/users/CodeDownloader";
-import { ExportButton } from "@/components/users/ExportButton";
+import { BulkActions } from "@/components/users/BulkActions";
 import { UserData } from "@/types/user";
 import { Synod } from "@/types/synod";
 import { toast } from "sonner";
@@ -29,7 +29,6 @@ import { generateUniqueQRCode, generateUniqueBarcode } from "@/utils/codeGenerat
 
 const ITEMS_PER_PAGE = 5;
 
-// Liste temporaire des synodes (à remplacer par une API)
 const SYNODS: Synod[] = [
   { id: "1", name: "Synode Antananarivo", description: "Région d'Antananarivo" },
   { id: "2", name: "Synode Antsirabe", description: "Région d'Antsirabe" },
@@ -134,7 +133,7 @@ const Users = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-secondary">Gestion des Utilisateurs</h1>
         <div className="flex gap-2">
-          <ExportButton users={users} />
+          <BulkActions users={users} />
           <Button 
             onClick={() => {
               setSelectedUser(null);
@@ -216,7 +215,6 @@ const Users = () => {
         />
       </div>
 
-      {/* Modal pour créer/éditer un utilisateur */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
         <DialogContent>
           <UserForm
@@ -230,7 +228,6 @@ const Users = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de confirmation de suppression */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -249,7 +246,6 @@ const Users = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Dialog pour les codes QR et barres */}
       <Dialog open={showCodesDialog} onOpenChange={setShowCodesDialog}>
         <DialogContent className="sm:max-w-md">
           <div className="space-y-6 py-4">
