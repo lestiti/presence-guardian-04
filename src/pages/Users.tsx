@@ -1,7 +1,4 @@
 import { useState, useMemo } from "react";
-import { User, QrCode, Trash, Edit } from "lucide-react";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -13,20 +10,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { SearchBar } from "@/components/users/SearchBar";
-import { RoleFilter } from "@/components/users/RoleFilter";
-import { SynodFilter } from "@/components/users/SynodFilter";
-import { UsersPagination } from "@/components/users/UsersPagination";
 import { UserForm } from "@/components/users/UserForm";
-import { CodeDownloader } from "@/components/users/CodeDownloader";
-import { BulkActions } from "@/components/users/BulkActions";
-import { ImportUsers } from "@/components/users/ImportUsers";
 import { UserData } from "@/types/user";
 import { Synod } from "@/types/synod";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import ReactBarcode from "react-barcode";
 import { generateUniqueQRCode, generateUniqueBarcode } from "@/utils/codeGenerators";
+import { UsersHeader } from "@/components/users/UsersHeader";
+import { UsersFilters } from "@/components/users/UsersFilters";
+import { UsersTable } from "@/components/users/UsersTable";
+import { CodeDownloader } from "@/components/users/CodeDownloader";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -140,94 +134,37 @@ const Users = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-secondary">Gestion des Utilisateurs</h1>
-        <div className="flex gap-2">
-          <ImportUsers 
-            onImport={handleImportUsers}
-            existingSynods={SYNODS.map(s => s.id)}
-          />
-          <BulkActions users={users} />
-          <Button 
-            onClick={() => {
-              setSelectedUser(null);
-              setFormData({ name: "", role: "MPIOMANA", synod: "", phone: "" });
-              setShowUserDialog(true);
-            }}
-          >
-            <User className="w-4 h-4 mr-2" />
-            Nouvel Utilisateur
-          </Button>
-        </div>
-      </div>
+      <UsersHeader
+        users={users}
+        onImport={handleImportUsers}
+        onNewUser={() => {
+          setSelectedUser(null);
+          setFormData({ name: "", role: "MPIOMANA", synod: "", phone: "" });
+          setShowUserDialog(true);
+        }}
+        existingSynods={SYNODS.map(s => s.id)}
+      />
 
-      <div className="flex gap-4 mb-4 flex-wrap">
-        <SearchBar value={searchTerm} onChange={setSearchTerm} />
-        <RoleFilter value={roleFilter} onChange={setRoleFilter} />
-        <SynodFilter 
-          value={synodFilter} 
-          synods={uniqueSynods}
-          onChange={setSynodFilter}
-        />
-      </div>
+      <UsersFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        roleFilter={roleFilter}
+        onRoleFilterChange={setRoleFilter}
+        synodFilter={synodFilter}
+        onSynodFilterChange={setSynodFilter}
+        synods={uniqueSynods}
+      />
 
-      <div className="card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Téléphone</TableHead>
-              <TableHead>Fonction</TableHead>
-              <TableHead>Synode</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedUsers.map((user) => (
-              <TableRow key={user.id} className="hover:bg-gray-50">
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.phone}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>{getSynodName(user.synod)}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => handleGenerateCodes(user)}
-                      className="hover:bg-primary/10"
-                    >
-                      <QrCode className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => handleEditUser(user)}
-                      className="hover:bg-primary/10"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => handleDeleteUser(user)}
-                      className="hover:bg-primary/10"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        <UsersPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+      <UsersTable
+        users={paginatedUsers}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        onGenerateCodes={handleGenerateCodes}
+        onEditUser={handleEditUser}
+        onDeleteUser={handleDeleteUser}
+        getSynodName={getSynodName}
+      />
 
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
         <DialogContent>
