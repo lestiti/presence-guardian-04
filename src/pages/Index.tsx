@@ -1,4 +1,8 @@
 import { Users, QrCode, BarChart2 } from "lucide-react";
+import { useState } from "react";
+import { ScanDialog } from "@/components/attendance/ScanDialog";
+import { ScanRecord } from "@/types/attendance";
+import { toast } from "sonner";
 
 const StatCard = ({ icon: Icon, title, value, trend }: { icon: any, title: string, value: string, trend: string }) => (
   <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass animate-fade-in transition-all duration-300 hover:animate-zoom-hover">
@@ -16,11 +20,37 @@ const StatCard = ({ icon: Icon, title, value, trend }: { icon: any, title: strin
 );
 
 const Index = () => {
+  const [showScanDialog, setShowScanDialog] = useState(false);
+  const [scans, setScans] = useState<ScanRecord[]>([]);
+
+  const handleScanSuccess = async (scanRecord: Omit<ScanRecord, "id">) => {
+    try {
+      const newScan: ScanRecord = {
+        ...scanRecord,
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
+      setScans(prevScans => [...prevScans, newScan]);
+      toast.success("Scan enregistré avec succès");
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du scan:", error);
+      toast.error("Erreur lors de l'enregistrement du scan");
+    }
+  };
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="mt-2 text-white/60">Welcome to FPVM Checking System</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <p className="mt-2 text-white/60">Welcome to FPVM Checking System</p>
+        </div>
+        <button
+          onClick={() => setShowScanDialog(true)}
+          className="mt-4 md:mt-0 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-all duration-300 border border-white/20"
+        >
+          <QrCode className="w-5 h-5" />
+          <span>Scanner maintenant</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -69,6 +99,15 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      <ScanDialog
+        open={showScanDialog}
+        onClose={() => setShowScanDialog(false)}
+        onScanSuccess={handleScanSuccess}
+        attendance={null}
+        direction="IN"
+        existingScans={scans}
+      />
     </div>
   );
 };
