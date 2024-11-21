@@ -9,7 +9,6 @@ interface UsersFiltersProps {
   onRoleFilterChange: (value: string) => void;
   synodFilter: string;
   onSynodFilterChange: (value: string) => void;
-  synods: string[];
 }
 
 export const UsersFilters = ({
@@ -19,14 +18,13 @@ export const UsersFilters = ({
   onRoleFilterChange,
   synodFilter,
   onSynodFilterChange,
-  synods,
 }: UsersFiltersProps) => {
   return (
     <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-soft border border-white/20 animate-fade-in">
       <div className="flex flex-wrap gap-4">
         <SearchBar value={searchTerm} onChange={onSearchChange} />
         <RoleFilter value={roleFilter} onChange={onRoleFilterChange} />
-        <SynodFilter value={synodFilter} synods={synods} onChange={onSynodFilterChange} />
+        <SynodFilter value={synodFilter} onChange={onSynodFilterChange} />
       </div>
     </div>
   );

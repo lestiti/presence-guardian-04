@@ -1,5 +1,4 @@
 import { UserData } from "@/types/user";
-import { Synod } from "@/types/synod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,10 +23,9 @@ interface UserFormProps {
   onSave: () => void;
   onCancel: () => void;
   isEdit: boolean;
-  synods: Synod[];
 }
 
-export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit, synods }: UserFormProps) => {
+export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: UserFormProps) => {
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -120,7 +118,6 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit, syno
               setFormData({ ...formData, synod: value });
               setHasChanges(true);
             }}
-            synods={synods}
           />
         </div>
       </div>
