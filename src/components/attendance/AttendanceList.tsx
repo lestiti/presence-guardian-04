@@ -1,10 +1,11 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash, QrCode } from "lucide-react";
+import { Edit, Trash, LogIn, LogOut } from "lucide-react";
 import { useSynodStore } from "@/stores/synodStore";
 import { useState } from "react";
 import { ScanDialog } from "./ScanDialog";
 import { toast } from "sonner";
+import { ScanRecord } from "@/types/attendance";
 
 interface Attendance {
   id: string;
@@ -23,23 +24,27 @@ interface AttendanceListProps {
 export const AttendanceList = ({ attendances, onEdit, onDelete }: AttendanceListProps) => {
   const { synods } = useSynodStore();
   const [scanningAttendance, setScanningAttendance] = useState<Attendance | null>(null);
+  const [scanDirection, setScanDirection] = useState<"IN" | "OUT">("IN");
+  const [scans, setScans] = useState<ScanRecord[]>([]);
 
   const getSynodName = (synodId: string) => {
     const synod = synods.find(s => s.id === synodId);
     return synod ? synod.name : synodId;
   };
 
-  const handleScanSuccess = async (code: string) => {
+  const handleScanSuccess = async (scanRecord: Omit<ScanRecord, "id">) => {
     try {
       // Ici, vous pouvez implémenter la logique pour enregistrer le scan
-      // Par exemple, faire un appel API pour enregistrer l'entrée/sortie
-      console.log("Code scanné:", code, "pour le pointage:", scanningAttendance?.id);
-      toast.success("Pointage enregistré avec succès");
+      const newScan: ScanRecord = {
+        ...scanRecord,
+        id: Date.now().toString() // Utilisez un vrai générateur d'ID en production
+      };
+      setScans([...scans, newScan]);
+      setScanningAttendance(null);
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du scan:", error);
       toast.error("Erreur lors de l'enregistrement du pointage");
     }
-    setScanningAttendance(null);
   };
 
   return (
@@ -76,10 +81,24 @@ export const AttendanceList = ({ attendances, onEdit, onDelete }: AttendanceList
                       <Button 
                         variant="outline" 
                         size="icon"
-                        onClick={() => setScanningAttendance(attendance)}
+                        onClick={() => {
+                          setScanningAttendance(attendance);
+                          setScanDirection("IN");
+                        }}
                         disabled={attendance.status === "TERMINE"}
                       >
-                        <QrCode className="w-4 h-4" />
+                        <LogIn className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => {
+                          setScanningAttendance(attendance);
+                          setScanDirection("OUT");
+                        }}
+                        disabled={attendance.status === "TERMINE"}
+                      >
+                        <LogOut className="w-4 h-4" />
                       </Button>
                       <Button 
                         variant="outline" 
@@ -108,7 +127,9 @@ export const AttendanceList = ({ attendances, onEdit, onDelete }: AttendanceList
         open={!!scanningAttendance}
         onClose={() => setScanningAttendance(null)}
         onScanSuccess={handleScanSuccess}
-        attendance={scanningAttendance as Attendance}
+        attendance={scanningAttendance}
+        direction={scanDirection}
+        existingScans={scans}
       />
     </>
   );
