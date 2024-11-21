@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { UserForm } from "@/components/users/UserForm";
 import { UserData } from "@/types/user";
-import { Synod } from "@/types/synod";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import ReactBarcode from "react-barcode";
@@ -21,41 +20,12 @@ import { UsersHeader } from "@/components/users/UsersHeader";
 import { UsersFilters } from "@/components/users/UsersFilters";
 import { UsersTable } from "@/components/users/UsersTable";
 import { CodeDownloader } from "@/components/users/CodeDownloader";
+import { useSynodStore } from "@/stores/synodStore";
 
 const ITEMS_PER_PAGE = 5;
 
-const SYNODS: Synod[] = [
-  { 
-    id: "1", 
-    name: "Synode Antananarivo", 
-    description: "Région d'Antananarivo",
-    color: "#10B981",
-    memberCount: 0
-  },
-  { 
-    id: "2", 
-    name: "Synode Antsirabe", 
-    description: "Région d'Antsirabe",
-    color: "#6366F1",
-    memberCount: 0
-  },
-  { 
-    id: "3", 
-    name: "Synode Fianarantsoa", 
-    description: "Région de Fianarantsoa",
-    color: "#EC4899",
-    memberCount: 0
-  },
-  { 
-    id: "4", 
-    name: "Synode Toamasina", 
-    description: "Région de Toamasina",
-    color: "#F59E0B",
-    memberCount: 0
-  },
-];
-
 const Users = () => {
+  const { synods } = useSynodStore();
   const [users, setUsers] = useState<UserData[]>([
     { id: "1", name: "John Doe", role: "MPIOMANA", synod: "1", phone: "+261340000001" },
     { id: "2", name: "Jane Smith", role: "MPIANDRY", synod: "2", phone: "+261340000002" },
@@ -143,7 +113,7 @@ const Users = () => {
   };
 
   const getSynodName = (synodId: string) => {
-    const synod = SYNODS.find(s => s.id === synodId);
+    const synod = synods.find(s => s.id === synodId);
     return synod ? synod.name : synodId;
   };
 
@@ -166,7 +136,7 @@ const Users = () => {
           setFormData({ name: "", role: "MPIOMANA", synod: "", phone: "" });
           setShowUserDialog(true);
         }}
-        existingSynods={SYNODS.map(s => s.id)}
+        existingSynods={synods.map(s => s.id)}
       />
 
       <UsersFilters
@@ -176,7 +146,6 @@ const Users = () => {
         onRoleFilterChange={setRoleFilter}
         synodFilter={synodFilter}
         onSynodFilterChange={setSynodFilter}
-        synods={uniqueSynods}
       />
 
       <UsersTable
@@ -198,7 +167,6 @@ const Users = () => {
             onSave={handleSaveUser}
             onCancel={() => setShowUserDialog(false)}
             isEdit={!!selectedUser}
-            synods={SYNODS}
           />
         </DialogContent>
       </Dialog>
