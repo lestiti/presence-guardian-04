@@ -1,7 +1,7 @@
 import { Users, QrCode, BarChart2 } from "lucide-react";
 
 const StatCard = ({ icon: Icon, title, value, trend }: { icon: any, title: string, value: string, trend: string }) => (
-  <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass animate-fade-in">
+  <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass animate-fade-in transition-all duration-300 hover:animate-zoom-hover">
     <div className="flex items-start justify-between">
       <div className="space-y-2">
         <h3 className="text-white/80 font-medium">{title}</h3>
@@ -45,7 +45,7 @@ const Index = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass">
+        <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass transition-all duration-300 hover:animate-zoom-hover">
           <h2 className="text-xl font-semibold text-white mb-4">Recent Activity</h2>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -62,7 +62,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass">
+        <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass transition-all duration-300 hover:animate-zoom-hover">
           <h2 className="text-xl font-semibold text-white mb-4">Synod Distribution</h2>
           <div className="h-64 flex items-center justify-center">
             <p className="text-white/60">Chart will be implemented here</p>
