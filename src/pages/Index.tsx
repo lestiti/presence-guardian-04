@@ -3,8 +3,20 @@ import { useState } from "react";
 import { ScanDialog } from "@/components/attendance/ScanDialog";
 import { ScanRecord } from "@/types/attendance";
 import { toast } from "sonner";
+import { useSynodStore } from "@/stores/synodStore";
+import { Card } from "@/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
-const StatCard = ({ icon: Icon, title, value, trend }: { icon: any, title: string, value: string, trend: string }) => (
+const StatCard = ({ icon: Icon, title, value, trend }: { icon: any; title: string; value: string; trend: string }) => (
   <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass animate-fade-in transition-all duration-300 hover:animate-zoom-hover">
     <div className="flex items-start justify-between">
       <div className="space-y-2">
@@ -22,14 +34,15 @@ const StatCard = ({ icon: Icon, title, value, trend }: { icon: any, title: strin
 const Index = () => {
   const [showScanDialog, setShowScanDialog] = useState(false);
   const [scans, setScans] = useState<ScanRecord[]>([]);
+  const { synods } = useSynodStore();
 
   const handleScanSuccess = async (scanRecord: Omit<ScanRecord, "id">) => {
     try {
       const newScan: ScanRecord = {
         ...scanRecord,
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       };
-      setScans(prevScans => [...prevScans, newScan]);
+      setScans((prevScans) => [...prevScans, newScan]);
       toast.success("Scan enregistré avec succès");
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du scan:", error);
@@ -37,12 +50,21 @@ const Index = () => {
     }
   };
 
+  // Données de présence simulées pour le graphique
+  const attendanceData = [
+    { date: "Lun", présents: 65, absents: 35 },
+    { date: "Mar", présents: 75, absents: 25 },
+    { date: "Mer", présents: 80, absents: 20 },
+    { date: "Jeu", présents: 70, absents: 30 },
+    { date: "Ven", présents: 85, absents: 15 },
+  ];
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-2 text-white/60">Welcome to FPVM Checking System</p>
+          <h1 className="text-3xl font-bold text-white">Tableau de bord</h1>
+          <p className="mt-2 text-white/60">Bienvenue sur FPVM Checking System</p>
         </div>
         <button
           onClick={() => setShowScanDialog(true)}
@@ -56,48 +78,70 @@ const Index = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           icon={Users}
-          title="Total Users"
-          value="2,420"
-          trend="12% increase from last month"
+          title="Utilisateurs"
+          value={`${synods.reduce((acc, synod) => acc + (synod.memberCount || 0), 0)}`}
+          trend={`${synods.length} synodes actifs`}
         />
         <StatCard
           icon={QrCode}
-          title="Today's Check-ins"
-          value="186"
-          trend="24 more than yesterday"
+          title="Présences aujourd'hui"
+          value={`${scans.length}`}
+          trend="Dernière mise à jour il y a quelques minutes"
         />
         <StatCard
           icon={BarChart2}
-          title="Active Synods"
-          value="8"
-          trend="2 new synods this week"
+          title="Taux de présence"
+          value="78%"
+          trend="+5% par rapport à la semaine dernière"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass transition-all duration-300 hover:animate-zoom-hover">
-          <h2 className="text-xl font-semibold text-white mb-4">Recent Activity</h2>
+        <Card className="bg-white/10 backdrop-blur-glass border border-white/20 p-6">
+          <h2 className="text-xl font-semibold text-white mb-6">Présences de la semaine</h2>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={attendanceData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="date" stroke="rgba(255,255,255,0.6)" />
+                <YAxis stroke="rgba(255,255,255,0.6)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '8px',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="présents" fill="#4ade80" />
+                <Bar dataKey="absents" fill="#f87171" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className="bg-white/10 backdrop-blur-glass border border-white/20 p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Activité récente</h2>
           <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg border border-white/10">
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center backdrop-blur-sm">
-                  <span className="text-white font-medium">JD</span>
+            {synods.slice(0, 3).map((synod) => (
+              <div key={synod.id} className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: synod.color }}
+                >
+                  <span className="text-white font-medium">
+                    {synod.name.substring(0, 2).toUpperCase()}
+                  </span>
                 </div>
                 <div>
-                  <p className="font-medium text-white">John Doe checked in</p>
-                  <p className="text-sm text-white/60">2 minutes ago</p>
+                  <p className="font-medium text-white">{synod.name}</p>
+                  <p className="text-sm text-white/60">{synod.memberCount || 0} membres</p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg p-6 shadow-glass transition-all duration-300 hover:animate-zoom-hover">
-          <h2 className="text-xl font-semibold text-white mb-4">Synod Distribution</h2>
-          <div className="h-64 flex items-center justify-center">
-            <p className="text-white/60">Chart will be implemented here</p>
-          </div>
-        </div>
+        </Card>
       </div>
 
       <ScanDialog
