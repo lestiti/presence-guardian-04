@@ -25,10 +25,34 @@ import { CodeDownloader } from "@/components/users/CodeDownloader";
 const ITEMS_PER_PAGE = 5;
 
 const SYNODS: Synod[] = [
-  { id: "1", name: "Synode Antananarivo", description: "Région d'Antananarivo" },
-  { id: "2", name: "Synode Antsirabe", description: "Région d'Antsirabe" },
-  { id: "3", name: "Synode Fianarantsoa", description: "Région de Fianarantsoa" },
-  { id: "4", name: "Synode Toamasina", description: "Région de Toamasina" },
+  { 
+    id: "1", 
+    name: "Synode Antananarivo", 
+    description: "Région d'Antananarivo",
+    color: "#10B981",
+    memberCount: 0
+  },
+  { 
+    id: "2", 
+    name: "Synode Antsirabe", 
+    description: "Région d'Antsirabe",
+    color: "#6366F1",
+    memberCount: 0
+  },
+  { 
+    id: "3", 
+    name: "Synode Fianarantsoa", 
+    description: "Région de Fianarantsoa",
+    color: "#EC4899",
+    memberCount: 0
+  },
+  { 
+    id: "4", 
+    name: "Synode Toamasina", 
+    description: "Région de Toamasina",
+    color: "#F59E0B",
+    memberCount: 0
+  },
 ];
 
 const Users = () => {
