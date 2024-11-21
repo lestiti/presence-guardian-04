@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, QrCode, Trash, Edit } from "lucide-react";
+import { User, QrCode, Trash, Edit, Download } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -34,6 +34,9 @@ import {
 import { SearchBar } from "@/components/users/SearchBar";
 import { RoleFilter } from "@/components/users/RoleFilter";
 import { UsersPagination } from "@/components/users/UsersPagination";
+import JSZip from "jszip";
+import { toPng } from "html-to-image";
+import { toast } from "sonner";
 
 interface UserData {
   id: string;
@@ -44,6 +47,63 @@ interface UserData {
 
 const ITEMS_PER_PAGE = 5;
 
+const CodeDownloader = ({ userId, userName }: { userId: string; userName: string; }) => {
+  const handleDownload = async () => {
+    try {
+      const zip = new JSZip();
+      const qrElement = document.getElementById(`qr-${userId}`);
+      const barcodeElement = document.getElementById(`barcode-${userId}`);
+
+      if (!qrElement || !barcodeElement) {
+        throw new Error("Codes not found");
+      }
+
+      const qrPng = await toPng(qrElement, { 
+        quality: 1.0,
+        width: 3840,
+        height: 3840,
+        pixelRatio: 4
+      });
+      const barcodePng = await toPng(barcodeElement, {
+        quality: 1.0,
+        width: 3840,
+        height: 1080,
+        pixelRatio: 4
+      });
+
+      zip.file(`${userName}-qr.png`, qrPng.split('base64,')[1], {base64: true});
+      zip.file(`${userName}-barcode.png`, barcodePng.split('base64,')[1], {base64: true});
+
+      const content = await zip.generateAsync({type: "blob"});
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${userName}-codes.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Codes téléchargés avec succès");
+    } catch (error) {
+      console.error("Erreur lors du téléchargement:", error);
+      toast.error("Erreur lors du téléchargement des codes");
+    }
+  };
+
+  return (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={handleDownload}
+      className="mt-4"
+    >
+      <Download className="w-4 h-4 mr-2" />
+      Télécharger les codes
+    </Button>
+  );
+};
+
 const Users = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserData[]>([
@@ -51,25 +111,21 @@ const Users = () => {
     { id: "2", name: "Jane Smith", role: "MPIANDRY", synod: "Synod B" },
   ]);
 
-  // États pour les modals et dialogues
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [showCodesDialog, setShowCodesDialog] = useState(false);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
-  // États pour le formulaire
   const [formData, setFormData] = useState<Partial<UserData>>({
     name: "",
     role: "MPIOMANA",
     synod: "",
   });
 
-  // États pour la recherche et les filtres
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Gestionnaires d'événements
   const handleGenerateCodes = (user: UserData) => {
     setSelectedUser(user);
     setShowCodesDialog(true);
@@ -125,7 +181,6 @@ const Users = () => {
     setSelectedUser(null);
   };
 
-  // Filtrage et pagination
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.synod.toLowerCase().includes(searchTerm.toLowerCase());
@@ -299,10 +354,12 @@ const Users = () => {
               <h3 className="text-lg font-medium">QR Code</h3>
               <div className="flex justify-center p-4 bg-white rounded-lg">
                 {selectedUser && (
-                  <QRCode
-                    value={`user-${selectedUser.id}`}
-                    size={128}
-                  />
+                  <div id={`qr-${selectedUser.id}`}>
+                    <QRCode
+                      value={`user-${selectedUser.id}`}
+                      size={128}
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -310,14 +367,22 @@ const Users = () => {
               <h3 className="text-lg font-medium">Code-barres</h3>
               <div className="flex justify-center p-4 bg-white rounded-lg">
                 {selectedUser && (
-                  <ReactBarcode 
-                    value={`user-${selectedUser.id}`}
-                    height={50}
-                    displayValue={false}
-                  />
+                  <div id={`barcode-${selectedUser.id}`}>
+                    <ReactBarcode 
+                      value={`user-${selectedUser.id}`}
+                      height={50}
+                      displayValue={false}
+                    />
+                  </div>
                 )}
               </div>
             </div>
+            {selectedUser && (
+              <CodeDownloader 
+                userId={selectedUser.id} 
+                userName={selectedUser.name}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
