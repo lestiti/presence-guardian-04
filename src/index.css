@@ -20,14 +20,14 @@
 
 @layer components {
   .card {
-    @apply bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg shadow-glass p-6 transition-all duration-200 hover:shadow-lg;
+    @apply bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg shadow-glass p-6 transition-all duration-200 hover:shadow-lg hover:bg-white/20;
   }
   
   .nav-link {
-    @apply px-4 py-2 transition-colors duration-200;
+    @apply px-4 py-2 transition-all duration-200 rounded-lg;
   }
   
   .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-200;
+    @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-all duration-200;
   }
 }
