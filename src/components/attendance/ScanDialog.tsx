@@ -10,16 +10,10 @@ interface ScanDialogProps {
   open: boolean;
   onClose: () => void;
   onScanSuccess: (code: string) => void;
-  attendance: {
-    id: string;
-    date: string;
-    synod: string;
-    type: string;
-    status: string;
-  };
+  attendance: any;
 }
 
-export const ScanDialog = ({ open, onClose, onScanSuccess, attendance }: ScanDialogProps) => {
+export const ScanDialog = ({ open, onClose, onScanSuccess }: ScanDialogProps) => {
   const [selectedDevice, setSelectedDevice] = useState<MediaDeviceInfo | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [scanning, setScanning] = useState(false);

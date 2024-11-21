@@ -1,105 +1,37 @@
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { AttendanceHeader } from "@/components/attendance/AttendanceHeader";
-import { AttendanceForm } from "@/components/attendance/AttendanceForm";
-import { AttendanceList } from "@/components/attendance/AttendanceList";
-
-interface Attendance {
-  id: string;
-  date: string;
-  synod: string;
-  type: string;
-  status: "EN_COURS" | "TERMINE";
-}
+import { ScanDialog } from "@/components/attendance/ScanDialog";
 
 const Attendance = () => {
-  const [showDialog, setShowDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
-  const [attendances, setAttendances] = useState<Attendance[]>([]);
+  const [showScanDialog, setShowScanDialog] = useState(false);
 
-  const handleNewAttendance = () => {
-    setSelectedAttendance(null);
-    setShowDialog(true);
+  const handleStartScan = () => {
+    setShowScanDialog(true);
   };
 
-  const handleSaveAttendance = (formData: any) => {
-    const newAttendance: Attendance = {
-      ...formData,
-      id: (attendances.length + 1).toString(),
-      status: "EN_COURS",
-    };
-    setAttendances([...attendances, newAttendance]);
-    setShowDialog(false);
-    toast.success("Pointage créé avec succès");
-  };
-
-  const handleEditAttendance = (attendance: Attendance) => {
-    setSelectedAttendance(attendance);
-    setShowDialog(true);
-  };
-
-  const handleDeleteAttendance = (attendance: Attendance) => {
-    setSelectedAttendance(attendance);
-    setShowDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (selectedAttendance) {
-      setAttendances(attendances.filter(a => a.id !== selectedAttendance.id));
-      toast.success("Pointage supprimé avec succès");
+  const handleScanSuccess = async (code: string) => {
+    try {
+      // Ici, vous pouvez implémenter la logique pour enregistrer le scan
+      console.log("Code scanné:", code);
+      toast.success("Scan enregistré avec succès");
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du scan:", error);
+      toast.error("Erreur lors de l'enregistrement du scan");
     }
-    setShowDeleteDialog(false);
-    setSelectedAttendance(null);
+    setShowScanDialog(false);
   };
 
   return (
     <div className="space-y-6">
-      <AttendanceHeader onNewAttendance={handleNewAttendance} />
+      <AttendanceHeader onStartScan={handleStartScan} />
 
-      <AttendanceList
-        attendances={attendances}
-        onEdit={handleEditAttendance}
-        onDelete={handleDeleteAttendance}
+      <ScanDialog
+        open={showScanDialog}
+        onClose={() => setShowScanDialog(false)}
+        onScanSuccess={handleScanSuccess}
+        attendance={null}
       />
-
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
-          <AttendanceForm
-            onSave={handleSaveAttendance}
-            onCancel={() => setShowDialog(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cela supprimera définitivement ce pointage
-              et toutes ses données associées.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
