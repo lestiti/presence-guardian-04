@@ -14,6 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { isValidMadagascarPhone, formatPhoneNumber } from "@/utils/phoneValidation";
+import { toast } from "sonner";
 
 interface UserFormProps {
   formData: Partial<UserData>;
@@ -24,6 +27,46 @@ interface UserFormProps {
 }
 
 export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: UserFormProps) => {
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setFormData({ ...formData, phone: formattedPhone });
+    setHasChanges(true);
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name?.trim()) {
+      toast.error("Le nom est requis");
+      return;
+    }
+
+    if (!isValidMadagascarPhone(formData.phone || '')) {
+      toast.error("Numéro de téléphone invalide");
+      return;
+    }
+
+    if (!formData.synod?.trim()) {
+      toast.error("Le synode est requis");
+      return;
+    }
+
+    onSave();
+    setHasChanges(false);
+  };
+
   return (
     <>
       <DialogHeader>
@@ -35,7 +78,10 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              setHasChanges(true);
+            }}
           />
         </div>
         <div className="space-y-2">
@@ -44,15 +90,18 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
             id="phone"
             type="tel"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="+261 34 00 000 00"
+            onChange={handlePhoneChange}
+            placeholder="+261 34 000 00 00"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="role">Fonction</Label>
           <Select
             value={formData.role}
-            onValueChange={(value) => setFormData({ ...formData, role: value as UserData["role"] })}
+            onValueChange={(value) => {
+              setFormData({ ...formData, role: value as UserData["role"] });
+              setHasChanges(true);
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner une fonction" />
@@ -70,7 +119,10 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
           <Input
             id="synod"
             value={formData.synod}
-            onChange={(e) => setFormData({ ...formData, synod: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, synod: e.target.value });
+              setHasChanges(true);
+            }}
           />
         </div>
       </div>
@@ -78,7 +130,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
         <Button variant="outline" onClick={onCancel}>
           Annuler
         </Button>
-        <Button onClick={onSave}>
+        <Button onClick={handleSubmit}>
           {isEdit ? "Modifier" : "Créer"}
         </Button>
       </DialogFooter>

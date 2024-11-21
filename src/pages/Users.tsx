@@ -1,14 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { User, QrCode, Trash, Edit } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,18 +15,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SearchBar } from "@/components/users/SearchBar";
 import { RoleFilter } from "@/components/users/RoleFilter";
+import { SynodFilter } from "@/components/users/SynodFilter";
 import { UsersPagination } from "@/components/users/UsersPagination";
 import { UserForm } from "@/components/users/UserForm";
 import { CodeDownloader } from "@/components/users/CodeDownloader";
+import { ExportButton } from "@/components/users/ExportButton";
 import { UserData } from "@/types/user";
-import { generateUniqueQRCode, generateUniqueBarcode } from "@/utils/codeGenerators";
+import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import ReactBarcode from "react-barcode";
+import { generateUniqueQRCode, generateUniqueBarcode } from "@/utils/codeGenerators";
 
 const ITEMS_PER_PAGE = 5;
 
 const Users = () => {
-  const { toast } = useToast();
   const [users, setUsers] = useState<UserData[]>([
     { id: "1", name: "John Doe", role: "MPIOMANA", synod: "Synod A", phone: "+261340000001" },
     { id: "2", name: "Jane Smith", role: "MPIANDRY", synod: "Synod B", phone: "+261340000002" },
@@ -42,6 +38,10 @@ const Users = () => {
   const [showCodesDialog, setShowCodesDialog] = useState(false);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [synodFilter, setSynodFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [formData, setFormData] = useState<Partial<UserData>>({
     name: "",
@@ -50,9 +50,27 @@ const Users = () => {
     phone: "",
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  const uniqueSynods = useMemo(() => 
+    Array.from(new Set(users.map(user => user.synod))),
+    [users]
+  );
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.synod.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.phone.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
+      const matchesSynod = synodFilter === "all" || user.synod === synodFilter;
+      return matchesSearch && matchesRole && matchesSynod;
+    });
+  }, [users, searchTerm, roleFilter, synodFilter]);
+
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleGenerateCodes = (user: UserData) => {
     setSelectedUser(user);
@@ -109,40 +127,33 @@ const Users = () => {
     setSelectedUser(null);
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.synod.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.phone.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
-
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-secondary">Gestion des Utilisateurs</h1>
-        <Button 
-          className="bg-primary hover:bg-primary-dark"
-          onClick={() => {
-            setSelectedUser(null);
-            setFormData({ name: "", role: "MPIOMANA", synod: "", phone: "" });
-            setShowUserDialog(true);
-          }}
-        >
-          <User className="w-4 h-4 mr-2" />
-          Nouvel Utilisateur
-        </Button>
+        <div className="flex gap-2">
+          <ExportButton users={users} />
+          <Button 
+            onClick={() => {
+              setSelectedUser(null);
+              setFormData({ name: "", role: "MPIOMANA", synod: "", phone: "" });
+              setShowUserDialog(true);
+            }}
+          >
+            <User className="w-4 h-4 mr-2" />
+            Nouvel Utilisateur
+          </Button>
+        </div>
       </div>
 
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-4 mb-4 flex-wrap">
         <SearchBar value={searchTerm} onChange={setSearchTerm} />
         <RoleFilter value={roleFilter} onChange={setRoleFilter} />
+        <SynodFilter 
+          value={synodFilter} 
+          synods={uniqueSynods}
+          onChange={setSynodFilter}
+        />
       </div>
 
       <div className="card">
