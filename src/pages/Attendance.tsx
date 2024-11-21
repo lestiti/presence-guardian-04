@@ -64,10 +64,6 @@ const Attendance = () => {
     setSelectedAttendance(null);
   };
 
-  const handleScanAttendance = (attendance: Attendance) => {
-    toast.info("Fonctionnalité de scan en cours de développement");
-  };
-
   return (
     <div className="space-y-6">
       <AttendanceHeader onNewAttendance={handleNewAttendance} />
@@ -76,7 +72,6 @@ const Attendance = () => {
         attendances={attendances}
         onEdit={handleEditAttendance}
         onDelete={handleDeleteAttendance}
-        onScan={handleScanAttendance}
       />
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
