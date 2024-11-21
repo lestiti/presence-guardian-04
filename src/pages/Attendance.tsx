@@ -14,12 +14,11 @@ const Attendance = () => {
     try {
       // Ici, vous pouvez implémenter la logique pour enregistrer le scan
       console.log("Code scanné:", code);
-      toast.success("Scan enregistré avec succès");
+      setShowScanDialog(false);
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du scan:", error);
       toast.error("Erreur lors de l'enregistrement du scan");
     }
-    setShowScanDialog(false);
   };
 
   return (
