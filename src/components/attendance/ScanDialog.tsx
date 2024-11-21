@@ -28,8 +28,9 @@ export const ScanDialog = ({
   const [selectedDevice, setSelectedDevice] = useState<MediaDeviceInfo | null>(null);
   const [playSuccess] = useSound("/sounds/success.mp3");
   const [playError] = useSound("/sounds/error.mp3");
-  const [activeScanners] = useState(new Set<string>());
   const [scanType, setScanType] = useState<ScanType>("QR");
+  const [lastProcessedCodes] = useState<Set<string>>(new Set());
+  const [processingCode, setProcessingCode] = useState<boolean>(false);
 
   useEffect(() => {
     const getDevices = async () => {
@@ -52,85 +53,70 @@ export const ScanDialog = ({
     }
   }, [open]);
 
-  const handleSuccessfulScan = async (code: string, scannerId: string, type: ScanType) => {
-    if (activeScanners.has(scannerId)) {
-      return;
+  const handleSuccessfulScan = async (code: string, type: ScanType) => {
+    if (processingCode) return;
+
+    setProcessingCode(true);
+    
+    try {
+      const newScan: Omit<ScanRecord, "id"> = {
+        userId: code,
+        attendanceId: attendance?.id || "default",
+        scanType: type,
+        direction,
+        timestamp: new Date()
+      };
+
+      const validation = validateScan(newScan, existingScans);
+
+      if (validation.isValid) {
+        playSuccess();
+        await onScanSuccess(newScan);
+        toast.success(validation.message, {
+          description: `Scan ${type} enregistré à ${new Date().toLocaleTimeString()}`
+        });
+      } else {
+        playError();
+        toast.error(validation.message);
+      }
+    } finally {
+      // Réinitialiser l'état de traitement après un court délai
+      setTimeout(() => {
+        setProcessingCode(false);
+      }, 500); // Délai de 500ms entre les scans
     }
-
-    const newScan: Omit<ScanRecord, "id"> = {
-      userId: code,
-      attendanceId: attendance.id,
-      scanType: type,
-      direction,
-      timestamp: new Date()
-    };
-
-    const validation = validateScan(newScan, existingScans);
-
-    if (validation.isValid) {
-      playSuccess();
-      onScanSuccess(newScan);
-      toast.success(validation.message, {
-        description: `Scan ${type} enregistré à ${new Date().toLocaleTimeString()} (Scanner ${scannerId})`
-      });
-    } else {
-      playError();
-      toast.error(validation.message);
-    }
-
-    activeScanners.add(scannerId);
-    setTimeout(() => {
-      activeScanners.delete(scannerId);
-    }, 1000);
   };
 
   // Gérer les scanners physiques
   useEffect(() => {
-    const scanners: { [key: string]: { code: string; timeout: NodeJS.Timeout | null } } = {
-      scanner1: { code: "", timeout: null },
-      scanner2: { code: "", timeout: null },
-      scanner3: { code: "", timeout: null },
-      scanner4: { code: "", timeout: null }
-    };
+    let currentCode = "";
+    let lastKeyTime = Date.now();
+    const SCANNER_TIMEOUT = 50; // 50ms entre les caractères
 
     const handleKeyPress = (event: KeyboardEvent) => {
-      let activeScanner = "scanner1";
-      for (const [scannerId, scanner] of Object.entries(scanners)) {
-        if (!scanner.timeout) {
-          activeScanner = scannerId;
-          break;
-        }
-      }
+      const currentTime = Date.now();
 
-      if (event.key === "Enter" && scanners[activeScanner].code) {
+      // Si le délai entre les touches est trop long, on considère que c'est un nouveau code
+      if (currentTime - lastKeyTime > SCANNER_TIMEOUT) {
+        currentCode = "";
+      }
+      lastKeyTime = currentTime;
+
+      if (event.key === "Enter" && currentCode) {
         // Détecter si c'est un QR code ou un code-barres basé sur le format
-        const scanType: ScanType = scanners[activeScanner].code.startsWith("FIF") ? "BARCODE" : "QR";
-        handleSuccessfulScan(scanners[activeScanner].code, activeScanner, scanType);
-        scanners[activeScanner].code = "";
+        const scanType: ScanType = currentCode.startsWith("FIF") ? "BARCODE" : "QR";
+        handleSuccessfulScan(currentCode, scanType);
+        currentCode = "";
         return;
       }
 
-      scanners[activeScanner].code += event.key;
-
-      if (scanners[activeScanner].timeout) {
-        clearTimeout(scanners[activeScanner].timeout);
-      }
-
-      scanners[activeScanner].timeout = setTimeout(() => {
-        scanners[activeScanner].code = "";
-        scanners[activeScanner].timeout = null;
-      }, 100);
+      currentCode += event.key;
     };
 
     window.addEventListener("keypress", handleKeyPress);
 
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
-      Object.values(scanners).forEach(scanner => {
-        if (scanner.timeout) {
-          clearTimeout(scanner.timeout);
-        }
-      });
     };
   }, []);
 
@@ -172,7 +158,7 @@ export const ScanDialog = ({
                   if (result) {
                     const decodedText = result.getText();
                     if (decodedText) {
-                      handleSuccessfulScan(decodedText, 'camera', "QR");
+                      handleSuccessfulScan(decodedText, "QR");
                     }
                   }
                 }}
@@ -184,8 +170,8 @@ export const ScanDialog = ({
 
           <p className="text-center text-sm text-muted-foreground">
             {scanType === "QR" 
-              ? "Utilisez jusqu'à 4 scanners QR simultanément ou placez un QR code devant la caméra"
-              : "Utilisez jusqu'à 4 scanners de codes-barres simultanément"}
+              ? "Scannez autant de QR codes que nécessaire"
+              : "Scannez autant de codes-barres que nécessaire"}
           </p>
         </div>
       </DialogContent>

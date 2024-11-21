@@ -6,6 +6,7 @@ import { ScanRecord } from "@/types/attendance";
 
 const Attendance = () => {
   const [showScanDialog, setShowScanDialog] = useState(false);
+  const [scans, setScans] = useState<ScanRecord[]>([]);
 
   const handleStartScan = () => {
     setShowScanDialog(true);
@@ -13,9 +14,17 @@ const Attendance = () => {
 
   const handleScanSuccess = async (scanRecord: Omit<ScanRecord, "id">) => {
     try {
-      // Ici, vous pouvez implémenter la logique pour enregistrer le scan
-      console.log("Scan enregistré:", scanRecord);
-      setShowScanDialog(false);
+      // Créer un nouvel enregistrement avec un ID unique
+      const newScan: ScanRecord = {
+        ...scanRecord,
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
+      
+      // Ajouter le nouveau scan à la liste
+      setScans(prevScans => [...prevScans, newScan]);
+      
+      // Ne pas fermer la fenêtre pour permettre des scans successifs
+      toast.success("Scan enregistré avec succès");
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du scan:", error);
       toast.error("Erreur lors de l'enregistrement du scan");
@@ -32,7 +41,7 @@ const Attendance = () => {
         onScanSuccess={handleScanSuccess}
         attendance={null}
         direction="IN"
-        existingScans={[]}
+        existingScans={scans}
       />
     </div>
   );
