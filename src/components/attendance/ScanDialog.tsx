@@ -94,8 +94,12 @@ export const ScanDialog = ({ open, onClose, onScanSuccess }: ScanDialogProps) =>
                   facingMode: "environment"
                 }}
                 onResult={(result) => {
-                  if (result?.text) {
-                    handleSuccessfulScan(result.text);
+                  if (result) {
+                    // Use getText() method to access the decoded text
+                    const decodedText = result.getText();
+                    if (decodedText) {
+                      handleSuccessfulScan(decodedText);
+                    }
                   }
                 }}
                 className="w-full h-full"
