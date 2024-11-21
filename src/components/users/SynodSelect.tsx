@@ -5,15 +5,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Synod } from "@/types/synod";
+import { useSynodStore } from "@/stores/synodStore";
 
 interface SynodSelectProps {
   value?: string;
   onValueChange: (value: string) => void;
-  synods: Synod[];
 }
 
-export const SynodSelect = ({ value, onValueChange, synods }: SynodSelectProps) => {
+export const SynodSelect = ({ value, onValueChange }: SynodSelectProps) => {
+  const { synods } = useSynodStore();
+
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger>
@@ -21,7 +22,15 @@ export const SynodSelect = ({ value, onValueChange, synods }: SynodSelectProps) 
       </SelectTrigger>
       <SelectContent>
         {synods.map((synod) => (
-          <SelectItem key={synod.id} value={synod.id}>
+          <SelectItem 
+            key={synod.id} 
+            value={synod.id}
+            className="flex items-center gap-2"
+          >
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: synod.color }} 
+            />
             {synod.name}
           </SelectItem>
         ))}

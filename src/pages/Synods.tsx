@@ -15,13 +15,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { useSynodStore } from "@/stores/synodStore";
 
 const Synods = () => {
-  const [synods, setSynods] = useState<Synod[]>([
-    { id: "1", name: "Synode Antananarivo", description: "Région d'Antananarivo", color: "#10B981", memberCount: 25 },
-    { id: "2", name: "Synode Antsirabe", description: "Région d'Antsirabe", color: "#6366F1", memberCount: 30 },
-  ]);
-
+  const { synods, setSynods } = useSynodStore();
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
