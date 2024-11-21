@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { QrReader } from "react-qr-reader";
 import { toast } from "sonner";
 import useSound from "use-sound";
-import { Camera, QrCode, Barcode } from "lucide-react";
+import { Camera, QrCode, Barcode, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { validateScan } from "@/utils/scanValidation";
 import { ScanType, ScanRecord } from "@/types/attendance";
@@ -31,6 +31,7 @@ export const ScanDialog = ({
   const [scanType, setScanType] = useState<ScanType>("QR");
   const [lastProcessedCodes] = useState<Set<string>>(new Set());
   const [processingCode, setProcessingCode] = useState<boolean>(false);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
   useEffect(() => {
     const getDevices = async () => {
@@ -72,6 +73,8 @@ export const ScanDialog = ({
       if (validation.isValid) {
         playSuccess();
         await onScanSuccess(newScan);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 1000);
         toast.success(validation.message, {
           description: `Scan ${type} enregistré à ${new Date().toLocaleTimeString()}`
         });
@@ -80,10 +83,9 @@ export const ScanDialog = ({
         toast.error(validation.message);
       }
     } finally {
-      // Réinitialiser l'état de traitement après un court délai
       setTimeout(() => {
         setProcessingCode(false);
-      }, 500); // Délai de 500ms entre les scans
+      }, 500);
     }
   };
 
@@ -165,6 +167,11 @@ export const ScanDialog = ({
                 className="w-full h-full"
               />
               <div className="absolute inset-0 pointer-events-none border-4 border-primary/50 animate-pulse rounded-lg" />
+              {showSuccess && (
+                <div className="absolute inset-0 flex items-center justify-center bg-green-500/20 backdrop-blur-sm">
+                  <CheckCircle2 className="w-24 h-24 text-green-500 animate-in zoom-in duration-300" />
+                </div>
+              )}
             </div>
           )}
 
