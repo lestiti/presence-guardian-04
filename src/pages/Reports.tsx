@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 const Reports = () => {
   const [selectedSynod, setSelectedSynod] = useState<string>("all");
+  const [selectedRole, setSelectedRole] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("month");
   const [startDate, setStartDate] = useState<Date>(new Date());
 
@@ -49,6 +50,21 @@ const Reports = () => {
                 <SelectItem value="all">Tous les synodes</SelectItem>
                 <SelectItem value="1">Synode 1</SelectItem>
                 <SelectItem value="2">Synode 2</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-2">Fonction</label>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une fonction" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les fonctions</SelectItem>
+                <SelectItem value="MPIOMANA">MPIOMANA</SelectItem>
+                <SelectItem value="MPIANDRY">MPIANDRY</SelectItem>
+                <SelectItem value="MPAMPIANATRA">MPAMPIANATRA</SelectItem>
+                <SelectItem value="IRAKA">IRAKA</SelectItem>
               </SelectContent>
             </Select>
           </div>
