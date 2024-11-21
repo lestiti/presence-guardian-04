@@ -75,10 +75,7 @@ const Users = () => {
   const handleGenerateCodes = (user: UserData) => {
     setSelectedUser(user);
     setShowCodesDialog(true);
-    toast({
-      title: "Codes générés",
-      description: "Les codes QR et barres ont été générés",
-    });
+    toast("Les codes QR et barres ont été générés");
   };
 
   const handleEditUser = (user: UserData) => {
@@ -95,20 +92,14 @@ const Users = () => {
   const handleSaveUser = () => {
     if (selectedUser) {
       setUsers(users.map(u => u.id === selectedUser.id ? { ...formData, id: selectedUser.id } as UserData : u));
-      toast({
-        title: "Utilisateur modifié",
-        description: "Les modifications ont été enregistrées avec succès",
-      });
+      toast("Les modifications ont été enregistrées avec succès");
     } else {
       const newUser: UserData = {
         ...formData,
         id: (users.length + 1).toString(),
       } as UserData;
       setUsers([...users, newUser]);
-      toast({
-        title: "Utilisateur créé",
-        description: "Le nouvel utilisateur a été créé avec succès",
-      });
+      toast("Le nouvel utilisateur a été créé avec succès");
     }
     setShowUserDialog(false);
     setSelectedUser(null);
@@ -118,10 +109,7 @@ const Users = () => {
   const handleConfirmDelete = () => {
     if (selectedUser) {
       setUsers(users.filter(u => u.id !== selectedUser.id));
-      toast({
-        title: "Utilisateur supprimé",
-        description: "L'utilisateur a été supprimé avec succès",
-      });
+      toast("L'utilisateur a été supprimé avec succès");
     }
     setShowDeleteDialog(false);
     setSelectedUser(null);
@@ -249,12 +237,9 @@ const Users = () => {
       {/* Dialog pour les codes QR et barres */}
       <Dialog open={showCodesDialog} onOpenChange={setShowCodesDialog}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Codes pour {selectedUser?.name}</DialogTitle>
-          </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <h3 className="text-lg font-medium">QR Code</h3>
+              <h3 className="text-lg font-medium">QR Code pour {selectedUser?.name}</h3>
               <div className="flex justify-center p-4 bg-white rounded-lg">
                 {selectedUser && (
                   <div id={`qr-${selectedUser.id}`}>
