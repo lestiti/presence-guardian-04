@@ -16,6 +16,7 @@ export const ScanDialog = ({ open, onClose, onScanSuccess }: ScanDialogProps) =>
   const [selectedDevice, setSelectedDevice] = useState<MediaDeviceInfo | null>(null);
   const [playSuccess] = useSound("/sounds/success.mp3");
   const [playError] = useSound("/sounds/error.mp3");
+  const [activeScanners] = useState(new Set<string>());
 
   useEffect(() => {
     const getDevices = async () => {
@@ -38,43 +39,80 @@ export const ScanDialog = ({ open, onClose, onScanSuccess }: ScanDialogProps) =>
     }
   }, [open]);
 
-  const handleSuccessfulScan = (code: string) => {
+  const handleSuccessfulScan = (code: string, scannerId: string) => {
+    // Vérifier si ce scanner est déjà actif
+    if (activeScanners.has(scannerId)) {
+      return;
+    }
+
     playSuccess();
     onScanSuccess(code);
     toast.success("Code scanné avec succès", {
-      description: `Scan enregistré à ${new Date().toLocaleTimeString()}`
+      description: `Scan enregistré à ${new Date().toLocaleTimeString()} (Scanner ${scannerId})`
     });
+
+    // Ajouter le scanner à la liste des scanners actifs
+    activeScanners.add(scannerId);
+
+    // Réinitialiser le scanner après un délai
+    setTimeout(() => {
+      activeScanners.delete(scannerId);
+    }, 1000); // Délai de 1 seconde avant de pouvoir réutiliser le même scanner
   };
 
-  // Gérer automatiquement les entrées du scanner physique
+  // Gérer automatiquement les entrées des scanners physiques
   useEffect(() => {
-    let scannedCode = "";
-    let timeoutId: NodeJS.Timeout;
+    const scanners: { [key: string]: { code: string; timeout: NodeJS.Timeout | null } } = {
+      scanner1: { code: "", timeout: null },
+      scanner2: { code: "", timeout: null },
+      scanner3: { code: "", timeout: null },
+      scanner4: { code: "", timeout: null }
+    };
 
     const handleKeyPress = (event: KeyboardEvent) => {
+      // Identifier le scanner en fonction du timing des entrées
+      const currentTime = Date.now();
+      let activeScanner = "scanner1";
+
+      // Trouver le premier scanner disponible
+      for (const [scannerId, scanner] of Object.entries(scanners)) {
+        if (!scanner.timeout) {
+          activeScanner = scannerId;
+          break;
+        }
+      }
+
       // Si c'est la touche Entrée et qu'on a un code
-      if (event.key === "Enter" && scannedCode) {
-        handleSuccessfulScan(scannedCode);
-        scannedCode = ""; // Réinitialiser pour le prochain scan
+      if (event.key === "Enter" && scanners[activeScanner].code) {
+        handleSuccessfulScan(scanners[activeScanner].code, activeScanner);
+        scanners[activeScanner].code = ""; // Réinitialiser pour le prochain scan
         return;
       }
 
       // Ajouter le caractère au code
-      scannedCode += event.key;
+      scanners[activeScanner].code += event.key;
 
       // Réinitialiser le timeout
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        scannedCode = "";
+      if (scanners[activeScanner].timeout) {
+        clearTimeout(scanners[activeScanner].timeout);
+      }
+
+      scanners[activeScanner].timeout = setTimeout(() => {
+        scanners[activeScanner].code = "";
+        scanners[activeScanner].timeout = null;
       }, 100); // Réinitialiser après 100ms sans nouvelle entrée
     };
 
-    // Activer la détection du scanner physique même si la boîte de dialogue n'est pas ouverte
     window.addEventListener("keypress", handleKeyPress);
 
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
-      clearTimeout(timeoutId);
+      // Nettoyer tous les timeouts
+      Object.values(scanners).forEach(scanner => {
+        if (scanner.timeout) {
+          clearTimeout(scanner.timeout);
+        }
+      });
     };
   }, []);
 
@@ -95,10 +133,9 @@ export const ScanDialog = ({ open, onClose, onScanSuccess }: ScanDialogProps) =>
                 }}
                 onResult={(result) => {
                   if (result) {
-                    // Use getText() method to access the decoded text
                     const decodedText = result.getText();
                     if (decodedText) {
-                      handleSuccessfulScan(decodedText);
+                      handleSuccessfulScan(decodedText, 'camera');
                     }
                   }
                 }}
@@ -109,7 +146,7 @@ export const ScanDialog = ({ open, onClose, onScanSuccess }: ScanDialogProps) =>
           )}
 
           <p className="text-center text-sm text-muted-foreground">
-            Utilisez directement votre scanner physique ou placez un code QR devant la caméra
+            Utilisez jusqu'à 4 scanners physiques simultanément ou placez un code QR devant la caméra
           </p>
         </div>
       </DialogContent>
