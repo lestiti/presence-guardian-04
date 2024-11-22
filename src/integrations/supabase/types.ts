@@ -36,6 +36,27 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scans: {
         Row: {
           attendance_id: string | null
@@ -154,7 +175,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "super_admin" | "admin" | "public"
     }
     CompositeTypes: {
       [_ in never]: never
