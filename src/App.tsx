@@ -4,10 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "./components/layout/Layout";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Suspense } from 'react';
 import { LoadingSpinner } from "./components/ui/loading";
-import { Error } from "./components/ui/error";
 
 // Import pages directly to avoid dynamic import issues
 import Index from "./pages/Index";
@@ -39,32 +37,11 @@ const App = () => (
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route
-                path="/users"
-                element={
-                  <ProtectedRoute>
-                    <Users />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/synods"
-                element={
-                  <ProtectedRoute>
-                    <Synods />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/users" element={<Users />} />
+              <Route path="/synods" element={<Synods />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/attendance" element={<Attendance />} />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
