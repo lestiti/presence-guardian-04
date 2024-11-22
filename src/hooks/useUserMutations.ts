@@ -11,21 +11,27 @@ type RequiredUserData = {
   name: string;
   phone: string;
   role: UserRole;
-  synod_id?: string;
-  created_at?: string;
-  updated_at?: string;
+  synod_id?: string | null;
 };
 
 const validateUserData = (user: Partial<UserData>): user is RequiredUserData => {
+  const errors: string[] = [];
+
   if (!user.name?.trim()) {
-    throw new Error("Le nom est requis");
+    errors.push("Le nom est requis");
   }
   if (!user.phone?.trim()) {
-    throw new Error("Le numéro de téléphone est requis");
+    errors.push("Le numéro de téléphone est requis");
   }
   if (!user.role || !["MPIOMANA", "MPIANDRY", "MPAMPIANATRA", "IRAKA"].includes(user.role)) {
-    throw new Error("La fonction est requise");
+    errors.push("La fonction est requise");
   }
+
+  if (errors.length > 0) {
+    errors.forEach(error => toast.error(error));
+    return false;
+  }
+
   return true;
 };
 
@@ -35,12 +41,12 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: async (user: Partial<UserData>) => {
       if (!validateUserData(user)) {
-        return;
+        throw new Error("Données utilisateur invalides");
       }
 
       const userData = {
-        name: user.name,
-        phone: user.phone,
+        name: user.name.trim(),
+        phone: user.phone.trim(),
         role: user.role,
         synod_id: user.synod_id || null,
       };
@@ -55,6 +61,7 @@ export const useCreateUser = () => {
         console.error("Error creating user:", error);
         throw new Error("Erreur lors de la création de l'utilisateur");
       }
+
       return data;
     },
     onSuccess: () => {
@@ -62,6 +69,7 @@ export const useCreateUser = () => {
       toast.success("Utilisateur créé avec succès");
     },
     onError: (error: Error) => {
+      console.error("Mutation error:", error);
       toast.error(error.message);
     },
   });
@@ -73,18 +81,17 @@ export const useUpdateUser = () => {
   return useMutation({
     mutationFn: async ({ id, ...user }: Partial<UserData> & { id: string }) => {
       if (!validateUserData(user)) {
-        return;
+        throw new Error("Données utilisateur invalides");
       }
 
-      // Validate UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(id)) {
         throw new Error("ID invalide");
       }
 
       const userData = {
-        name: user.name,
-        phone: user.phone,
+        name: user.name.trim(),
+        phone: user.phone.trim(),
         role: user.role,
         synod_id: user.synod_id || null,
       };
@@ -100,6 +107,7 @@ export const useUpdateUser = () => {
         console.error("Error updating user:", error);
         throw new Error("Erreur lors de la modification de l'utilisateur");
       }
+
       return data;
     },
     onSuccess: () => {
@@ -107,6 +115,7 @@ export const useUpdateUser = () => {
       toast.success("Utilisateur modifié avec succès");
     },
     onError: (error: Error) => {
+      console.error("Mutation error:", error);
       toast.error(error.message);
     },
   });
@@ -117,7 +126,6 @@ export const useDeleteUser = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      // Validate UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(id)) {
         throw new Error("ID invalide");
@@ -138,6 +146,7 @@ export const useDeleteUser = () => {
       toast.success("Utilisateur supprimé avec succès");
     },
     onError: (error: Error) => {
+      console.error("Mutation error:", error);
       toast.error(error.message);
     },
   });
