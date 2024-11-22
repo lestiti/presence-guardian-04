@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -13,19 +12,16 @@ import { toast } from "sonner";
 interface AccessCodeDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  redirectPath: string;
+  onSuccess: () => void;
 }
 
-export const AccessCodeDialog = ({ isOpen, onClose, redirectPath }: AccessCodeDialogProps) => {
-  const navigate = useNavigate();
+export const AccessCodeDialog = ({ isOpen, onClose, onSuccess }: AccessCodeDialogProps) => {
   const [value, setValue] = useState("");
 
   const handleSubmit = () => {
     if (value === "FPVM*2024") {
       toast.success("Code d'accès correct");
-      onClose();
-      // Utilisation de replace pour éviter les problèmes de navigation
-      navigate(redirectPath, { replace: true });
+      onSuccess();
     } else {
       toast.error("Code d'accès incorrect");
       setValue("");

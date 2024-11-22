@@ -1,29 +1,30 @@
-import { ReactNode, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { AccessCodeDialog } from "./AccessCodeDialog";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [showDialog, setShowDialog] = useState(true);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const handleClose = () => {
-    setShowDialog(false);
-    navigate("/", { replace: true });
-  };
+  if (!isAuthenticated) {
+    return (
+      <>
+        <AccessCodeDialog
+          isOpen={showDialog}
+          onClose={() => setShowDialog(false)}
+          onSuccess={() => {
+            setIsAuthenticated(true);
+            setShowDialog(false);
+          }}
+        />
+        {!showDialog && <Navigate to="/" replace />}
+      </>
+    );
+  }
 
-  return (
-    <>
-      {!showDialog && children}
-      <AccessCodeDialog
-        isOpen={showDialog}
-        onClose={handleClose}
-        redirectPath={location.pathname}
-      />
-    </>
-  );
+  return <>{children}</>;
 };

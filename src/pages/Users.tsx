@@ -4,17 +4,28 @@ import { UsersFilters } from "@/components/users/UsersFilters";
 import { UsersTable } from "@/components/users/UsersTable";
 import { UserData } from "@/types/user";
 import { useSynodStore } from "@/stores/synodStore";
+import { useUsers } from "@/hooks/useSupabase";
 import { toast } from "sonner";
+import { LoadingSpinner } from "@/components/ui/loading";
+import { Error } from "@/components/ui/error";
 
 const ITEMS_PER_PAGE = 10;
 
 const Users = () => {
   const { synods } = useSynodStore();
-  const [users, setUsers] = useState<UserData[]>([]);
+  const { data: users = [], isLoading, error } = useUsers();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [synodFilter, setSynodFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <Error message="Erreur lors du chargement des utilisateurs" />;
+  }
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,7 +54,6 @@ const Users = () => {
   };
 
   const handleImportUsers = (importedUsers: UserData[]) => {
-    setUsers(prev => [...prev, ...importedUsers]);
     toast.success(`${importedUsers.length} utilisateurs importés`);
   };
 
