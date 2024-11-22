@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "./components/layout/Layout";
 import { Suspense } from 'react';
 import { LoadingSpinner } from "./components/ui/loading";
+import { useAccess } from "./hooks/useAccess";
 
 // Import pages
 import Index from "./pages/Index";
@@ -26,6 +27,16 @@ const queryClient = new QueryClient({
   },
 });
 
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) => {
+  const { role } = useAccess();
+  
+  if (!allowedRoles.includes(role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -36,11 +47,39 @@ const App = () => (
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/synods" element={<Synods />} />
-              <Route path="/reports" element={<Reports />} />
+              <Route 
+                path="/users" 
+                element={
+                  <ProtectedRoute allowedRoles={['super_admin']}>
+                    <Users />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/synods" 
+                element={
+                  <ProtectedRoute allowedRoles={['super_admin']}>
+                    <Synods />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports" 
+                element={
+                  <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                    <Reports />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/attendance" element={<Attendance />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute allowedRoles={['super_admin']}>
+                    <Settings />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
