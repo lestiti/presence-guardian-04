@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UsersHeader } from "@/components/users/UsersHeader";
 import { UsersFilters } from "@/components/users/UsersFilters";
 import { UsersTable } from "@/components/users/UsersTable";
@@ -10,6 +10,11 @@ import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { Error } from "@/components/ui/error";
 import { useDebounce } from "@/hooks/useDebounce";
+import { supabase } from "@/integrations/supabase/client";
+import { StatsCard } from "@/components/users/StatsCard";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -19,6 +24,7 @@ const Users = () => {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
+  const { theme } = useTheme();
   
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -32,6 +38,37 @@ const Users = () => {
   const [showCodesDialog, setShowCodesDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState<Partial<UserData>>({});
+
+  // Setup real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('users_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'users' },
+        (payload) => {
+          const eventType = payload.eventType;
+          const newRecord = payload.new as UserData;
+          const oldRecord = payload.old as UserData;
+
+          switch (eventType) {
+            case 'INSERT':
+              toast.success(`Nouvel utilisateur ajouté: ${newRecord.name}`);
+              break;
+            case 'UPDATE':
+              toast.info(`Utilisateur modifié: ${newRecord.name}`);
+              break;
+            case 'DELETE':
+              toast.warning(`Utilisateur supprimé: ${oldRecord.name}`);
+              break;
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <Error message="Erreur lors du chargement des utilisateurs" />;
@@ -50,6 +87,44 @@ const Users = () => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  // Statistics calculations
+  const stats = {
+    total: users.length,
+    bySynod: synods.map(synod => ({
+      name: synod.name,
+      count: users.filter(u => u.synod_id === synod.id).length,
+      color: synod.color
+    })),
+    byRole: {
+      MPIOMANA: users.filter(u => u.role === "MPIOMANA").length,
+      MPIANDRY: users.filter(u => u.role === "MPIANDRY").length,
+      MPAMPIANATRA: users.filter(u => u.role === "MPAMPIANATRA").length,
+      IRAKA: users.filter(u => u.role === "IRAKA").length
+    }
+  };
+
+  const handleExportData = () => {
+    const csvData = users.map(user => ({
+      Nom: user.name,
+      Téléphone: user.phone,
+      Fonction: user.role,
+      Synode: getSynodName(user.synod_id)
+    }));
+
+    const csvString = [
+      Object.keys(csvData[0]).join(','),
+      ...csvData.map(row => Object.values(row).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'utilisateurs.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleNewUser = () => {
     setSelectedUser(null);
@@ -80,10 +155,8 @@ const Users = () => {
           id: selectedUser.id,
           ...formData
         });
-        toast.success("Utilisateur modifié avec succès");
       } else {
         await createUser.mutateAsync(formData as UserData);
-        toast.success("Utilisateur créé avec succès");
       }
       setShowUserDialog(false);
     } catch (error) {
@@ -97,23 +170,10 @@ const Users = () => {
     
     try {
       await deleteUser.mutateAsync(selectedUser.id);
-      toast.success("Utilisateur supprimé avec succès");
       setShowDeleteDialog(false);
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Erreur lors de la suppression");
-    }
-  };
-
-  const handleImportUsers = async (importedUsers: UserData[]) => {
-    try {
-      await Promise.all(
-        importedUsers.map(user => createUser.mutateAsync(user))
-      );
-      toast.success(`${importedUsers.length} utilisateurs importés avec succès`);
-    } catch (error) {
-      console.error("Error importing users:", error);
-      toast.error("Erreur lors de l'importation");
     }
   };
 
@@ -123,13 +183,39 @@ const Users = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <UsersHeader
-        users={users}
-        onImport={handleImportUsers}
-        onNewUser={handleNewUser}
-        existingSynods={synods.map(s => s.id)}
-      />
+    <div className="space-y-6 animate-fade-in">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Total Utilisateurs"
+          value={stats.total}
+          className="bg-primary/10"
+        />
+        {Object.entries(stats.byRole).map(([role, count]) => (
+          <StatsCard
+            key={role}
+            title={role}
+            value={count}
+            className="bg-secondary/10"
+          />
+        ))}
+      </div>
+
+      <div className="flex justify-between items-center">
+        <UsersHeader
+          users={users}
+          onImport={handleImportUsers}
+          onNewUser={handleNewUser}
+          existingSynods={synods.map(s => s.id)}
+        />
+        <Button
+          variant="outline"
+          onClick={handleExportData}
+          className="ml-2"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Exporter CSV
+        </Button>
+      </div>
 
       <UsersFilters
         searchTerm={searchTerm}

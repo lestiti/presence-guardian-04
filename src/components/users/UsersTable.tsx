@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { UserData } from "@/types/user";
 import { UsersPagination } from "./UsersPagination";
+import { useTheme } from "@/hooks/useTheme";
 
 interface UsersTableProps {
   users: UserData[];
@@ -25,8 +26,12 @@ export const UsersTable = ({
   onDeleteUser,
   getSynodName,
 }: UsersTableProps) => {
+  const { theme } = useTheme();
+
   return (
-    <div className="bg-white/50 backdrop-blur-sm rounded-lg shadow-soft border border-white/20 animate-fade-in">
+    <div className={`bg-white/50 backdrop-blur-sm rounded-lg shadow-soft border border-white/20 animate-fade-in ${
+      theme === 'dark' ? 'dark:bg-gray-800/50 dark:border-gray-700/20' : ''
+    }`}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -40,7 +45,10 @@ export const UsersTable = ({
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id} className="hover:bg-gray-50/50 transition-colors duration-200">
+              <TableRow 
+                key={user.id} 
+                className="hover:bg-gray-50/50 transition-all duration-200 animate-fade-in"
+              >
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.phone}</TableCell>
                 <TableCell>
@@ -71,7 +79,7 @@ export const UsersTable = ({
                       variant="outline" 
                       size="icon" 
                       onClick={() => onDeleteUser(user)}
-                      className="hover:bg-primary/10 transition-colors duration-200"
+                      className="hover:bg-destructive/10 transition-colors duration-200"
                     >
                       <Trash className="w-4 h-4" />
                     </Button>
