@@ -1,10 +1,10 @@
 import { StatsCard } from "./StatsCard";
 import { UserData } from "@/types/user";
-import { SynodData } from "@/types/synod";
+import { Synod } from "@/types/synod";
 
 interface UserStatsProps {
   users: UserData[];
-  synods: SynodData[];
+  synods: Synod[];
 }
 
 export const UserStats = ({ users, synods }: UserStatsProps) => {
