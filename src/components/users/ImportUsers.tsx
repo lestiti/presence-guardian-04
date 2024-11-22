@@ -34,12 +34,12 @@ export const ImportUsers = ({ onImport, existingSynods }: ImportUsersProps) => {
       const users = text.split("\n")
         .filter(line => line.trim().length > 0)
         .map(line => {
-          const [anarana, fanampiny, finday, asa, synode] = line.split("\t");
+          const [anarana, fanampiny, finday, asa, synode_id] = line.split("\t");
           return {
             name: `${anarana || ""} ${fanampiny || ""}`.trim(),
             phone: finday?.trim() || "",
             role: mapRole(asa?.trim()),
-            synod: synode?.trim() || "",
+            synod_id: synode_id?.trim() || "",
           };
         })
         .filter(user => user.name || user.phone);
@@ -77,7 +77,7 @@ export const ImportUsers = ({ onImport, existingSynods }: ImportUsersProps) => {
         newErrors.push(`Ligne ${index + 1}: Finday efa misy`);
       }
       phoneNumbers.add(user.phone);
-      if (!existingSynods.includes(user.synod || "")) {
+      if (!existingSynods.includes(user.synod_id || "")) {
         newErrors.push(`Ligne ${index + 1}: Synode tsy mety`);
       }
     });
@@ -102,7 +102,7 @@ export const ImportUsers = ({ onImport, existingSynods }: ImportUsersProps) => {
     }
 
     const validUsers = parsedUsers.filter(user => 
-      user.name && user.phone && user.role && user.synod
+      user.name && user.phone && user.role && user.synod_id
     ) as UserData[];
 
     onImport(validUsers);

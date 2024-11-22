@@ -39,7 +39,6 @@ export const AttendanceList = ({ attendances, onEdit, onDelete }: AttendanceList
 
   const handleScanSuccess = async (scanRecord: Omit<ScanRecord, "id">) => {
     try {
-      // Ici, vous pouvez implémenter la logique pour enregistrer le scan
       const newScan: ScanRecord = {
         ...scanRecord,
         id: Date.now().toString() // Utilisez un vrai générateur d'ID en production
@@ -68,7 +67,7 @@ export const AttendanceList = ({ attendances, onEdit, onDelete }: AttendanceList
   // Vérification des absences répétées
   const checkAbsences = (attendance: Attendance) => {
     const absenceCount = scans.filter(scan => 
-      scan.attendanceId === attendance.id && scan.direction === "OUT"
+      scan.attendance_id === attendance.id && scan.direction === "OUT"
     ).length;
 
     if (absenceCount >= 3) {

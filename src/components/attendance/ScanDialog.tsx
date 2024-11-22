@@ -73,11 +73,12 @@ export const ScanDialog = ({
     
     try {
       const newScan: Omit<ScanRecord, "id"> = {
-        userId: code,
-        attendanceId: attendance?.id || "default",
-        scanType: type,
+        user_id: code,
+        attendance_id: attendance?.id || "default",
+        scan_type: type,
         direction,
-        timestamp: new Date()
+        timestamp: new Date().toISOString(),
+        created_at: new Date().toISOString()
       };
 
       const validation = validateScan(newScan, existingScans);

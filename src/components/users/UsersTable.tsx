@@ -48,7 +48,7 @@ export const UsersTable = ({
                     {user.role}
                   </span>
                 </TableCell>
-                <TableCell>{getSynodName(user.synod)}</TableCell>
+                <TableCell>{getSynodName(user.synod_id)}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button 

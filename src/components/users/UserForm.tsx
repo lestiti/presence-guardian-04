@@ -57,7 +57,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
       return;
     }
 
-    if (!formData.synod?.trim()) {
+    if (!formData.synod_id?.trim()) {
       toast.error("Le synode est requis");
       return;
     }
