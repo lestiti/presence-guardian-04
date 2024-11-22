@@ -8,9 +8,14 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Suspense, lazy } from 'react';
 import { LoadingSpinner } from "./components/ui/loading";
 
-// Lazy load pages
+// Lazy load pages with error boundaries
 const Index = lazy(() => import("./pages/Index"));
-const Users = lazy(() => import("./pages/Users"));
+const Users = lazy(() => 
+  import("./pages/Users").catch(error => {
+    console.error("Error loading Users page:", error);
+    return { default: () => <div>Error loading page</div> };
+  })
+);
 const Synods = lazy(() => import("./pages/Synods"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -42,7 +47,9 @@ const App = () => (
                 path="/users"
                 element={
                   <ProtectedRoute>
-                    <Users />
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <Users />
+                    </Suspense>
                   </ProtectedRoute>
                 }
               />
