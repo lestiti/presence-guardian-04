@@ -54,7 +54,7 @@ export const useAuth = () => {
         } else {
           toast.error('Erreur lors de la connexion. Veuillez réessayer.');
         }
-        throw error;
+        return;
       }
 
       if (data?.user) {
@@ -63,6 +63,7 @@ export const useAuth = () => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
+      toast.error('Une erreur inattendue est survenue');
     }
   };
 
