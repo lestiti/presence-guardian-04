@@ -18,16 +18,21 @@ export const useAuth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        const { data: profile } = await supabase
-          .from('auth_profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profile } = await supabase
+            .from('auth_profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
 
-        setUser({
-          id: session.user.id,
-          role: profile?.role || 'public'
-        });
+          setUser({
+            id: session.user.id,
+            role: profile?.role || 'public'
+          });
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
@@ -50,7 +55,8 @@ export const useAuth = () => {
 
       navigate('/login');
       toast.success('Déconnexion réussie');
-    } catch {
+    } catch (error) {
+      console.error('Logout error:', error);
       toast.error('Erreur lors de la déconnexion');
     }
   };

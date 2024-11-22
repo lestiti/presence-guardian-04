@@ -71,6 +71,8 @@ const Login = () => {
           }}
           theme="dark"
           providers={[]}
+          redirectTo={`${window.location.origin}/`}
+          magicLink={false}
           view="sign_in"
           showLinks={false}
         />
