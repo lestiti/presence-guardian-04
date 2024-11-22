@@ -42,19 +42,24 @@ export const useAuth = () => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (!email || !password) {
+    // Input validation
+    if (!email?.trim() || !password?.trim()) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
 
     try {
-      const response = await supabase.auth.signInWithPassword({
-        email,
-        password
+      // Attempt login
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim()
       });
 
-      if (response.error) {
-        if (response.error.message === 'Invalid login credentials') {
+      // Handle authentication errors
+      if (error) {
+        console.error('Login error:', error);
+        
+        if (error.message.includes('Invalid login credentials')) {
           toast.error('Email ou mot de passe incorrect');
         } else {
           toast.error('Erreur lors de la connexion. Veuillez réessayer.');
@@ -62,15 +67,17 @@ export const useAuth = () => {
         return;
       }
 
-      if (!response.data?.user) {
+      // Validate user data
+      if (!data?.user?.id) {
         toast.error('Erreur lors de la connexion. Veuillez réessayer.');
         return;
       }
 
+      // Success notification and navigation
       toast.success('Connexion réussie');
       navigate('/');
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Unexpected login error:', error);
       toast.error('Une erreur inattendue est survenue');
     }
   };
@@ -80,6 +87,7 @@ export const useAuth = () => {
       const { error } = await supabase.auth.signOut();
       
       if (error) {
+        console.error('Logout error:', error);
         toast.error('Erreur lors de la déconnexion');
         return;
       }
@@ -87,7 +95,7 @@ export const useAuth = () => {
       navigate('/login');
       toast.success('Déconnexion réussie');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Unexpected logout error:', error);
       toast.error('Erreur lors de la déconnexion');
     }
   };
