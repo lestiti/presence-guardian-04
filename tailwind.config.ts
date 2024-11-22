@@ -47,6 +47,8 @@ export default {
       boxShadow: {
         soft: "0 2px 15px rgba(0, 0, 0, 0.1)",
         glass: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+        glow: "0 0 15px rgba(155, 135, 245, 0.5)",
+        'inner-glow': 'inset 0 0 15px rgba(155, 135, 245, 0.2)',
       },
       backdropBlur: {
         glass: "blur(4px)",
@@ -59,11 +61,21 @@ export default {
         "zoom-in": {
           "0%": { transform: "scale(1)" },
           "100%": { transform: "scale(1.02)" },
+        },
+        "slide-in": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 15px rgba(155, 135, 245, 0.5)" },
+          "50%": { boxShadow: "0 0 25px rgba(155, 135, 245, 0.8)" },
         }
       },
       animation: {
         "fade-in": "fade-in 0.2s ease-out",
         "zoom-hover": "zoom-in 0.2s ease-out forwards",
+        "slide-in": "slide-in 0.3s ease-out",
+        "pulse-glow": "pulse-glow 2s infinite",
       },
     },
   },

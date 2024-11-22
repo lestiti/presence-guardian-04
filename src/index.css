@@ -14,35 +14,101 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased min-h-screen;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-primary-dark;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg shadow-glass p-6 transition-all duration-300 hover:shadow-lg hover:bg-white/20;
+    @apply bg-white/10 backdrop-blur-glass border border-white/20 rounded-lg shadow-glass p-6 transition-all duration-300 hover:shadow-lg hover:bg-white/20 animate-fade-in;
   }
   
   .nav-link {
-    @apply px-4 py-2 transition-all duration-300 rounded-lg hover:bg-white/20 hover:text-white active:scale-95;
+    @apply px-4 py-2 transition-all duration-300 rounded-lg hover:bg-white/20 hover:text-white active:scale-95 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:scale-x-0 after:origin-bottom-right after:transition-transform hover:after:scale-x-100 hover:after:origin-bottom-left;
   }
   
   .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary-dark active:scale-95;
+    @apply bg-primary text-white px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary-dark active:scale-95 shadow-soft hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* New dropdown styles */
+  .input-field {
+    @apply px-4 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 bg-white/50 backdrop-blur-sm;
+  }
+
+  .select-field {
+    @apply px-4 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 bg-white/50 backdrop-blur-sm cursor-pointer;
+  }
+
+  .form-label {
+    @apply text-sm font-medium text-gray-700 mb-1 block;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-200;
+  }
+
+  .badge-primary {
+    @apply bg-primary/10 text-primary hover:bg-primary/20;
+  }
+
+  .badge-secondary {
+    @apply bg-secondary/10 text-secondary hover:bg-secondary/20;
+  }
+
+  /* Dropdown styles */
   [data-radix-popper-content-wrapper] {
     @apply z-50;
   }
 
   [role="menu"],
   [role="listbox"] {
-    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg;
+    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg animate-fade-in;
   }
 
   [role="menuitem"],
   [role="option"] {
     @apply text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2 text-sm cursor-pointer transition-colors duration-150;
+  }
+
+  /* Table styles */
+  .table-container {
+    @apply overflow-x-auto rounded-lg border border-gray-200 bg-white/50 backdrop-blur-sm shadow-soft;
+  }
+
+  .table-header {
+    @apply bg-gray-50/50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+
+  .table-cell {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+  }
+
+  /* Card styles */
+  .stat-card {
+    @apply p-6 rounded-lg border border-gray-200 bg-white/50 backdrop-blur-sm shadow-soft hover:shadow-glow transition-all duration-300;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold text-gray-900;
+  }
+
+  .stat-label {
+    @apply text-sm font-medium text-gray-500;
+  }
+
+  /* Animation utilities */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-105;
   }
 }
