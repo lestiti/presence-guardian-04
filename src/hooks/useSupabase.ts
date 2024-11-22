@@ -1,11 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
-// Synods
+// Optimized query keys
+const queryKeys = {
+  synods: ['synods'] as const,
+  users: ['users'] as const,
+  attendance: ['attendance'] as const,
+  scans: (attendanceId?: string) => ['scans', attendanceId] as const,
+};
+
+// Synods with realtime updates
 export const useSynods = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel('synods_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'synods' },
+        (payload) => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.synods });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
   return useQuery({
-    queryKey: ["synods"],
+    queryKey: queryKeys.synods,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("synods")
@@ -18,35 +45,28 @@ export const useSynods = () => {
   });
 };
 
-export const useCreateSynod = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (synod: { name: string; description?: string; color: string }) => {
-      const { data, error } = await supabase
-        .from("synods")
-        .insert(synod)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["synods"] });
-      toast.success("Synode créé avec succès");
-    },
-    onError: (error) => {
-      toast.error("Erreur lors de la création du synode");
-      console.error("Error creating synod:", error);
-    },
-  });
-};
-
-// Users
+// Users with realtime updates
 export const useUsers = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel('users_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'users' },
+        (payload) => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.users });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
   return useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users")
@@ -65,6 +85,7 @@ export const useUsers = () => {
   });
 };
 
+// Optimized mutations with proper error handling
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   
@@ -80,7 +101,7 @@ export const useCreateUser = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users });
       toast.success("Utilisateur créé avec succès");
     },
     onError: (error) => {
@@ -93,7 +114,7 @@ export const useCreateUser = () => {
 // Attendance
 export const useAttendance = () => {
   return useQuery({
-    queryKey: ["attendance"],
+    queryKey: queryKeys.attendance,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("attendance")
@@ -106,35 +127,10 @@ export const useAttendance = () => {
   });
 };
 
-export const useCreateAttendance = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (attendance: { title: string; date: string; type: string }) => {
-      const { data, error } = await supabase
-        .from("attendance")
-        .insert(attendance)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      toast.success("Présence créée avec succès");
-    },
-    onError: (error) => {
-      toast.error("Erreur lors de la création de la présence");
-      console.error("Error creating attendance:", error);
-    },
-  });
-};
-
 // Scans
 export const useScans = (attendanceId?: string) => {
   return useQuery({
-    queryKey: ["scans", attendanceId],
+    queryKey: queryKeys.scans(attendanceId),
     queryFn: async () => {
       let query = supabase
         .from("scans")
@@ -185,7 +181,7 @@ export const useCreateScan = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["scans"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.scans() });
       toast.success("Scan enregistré avec succès");
     },
     onError: (error) => {
