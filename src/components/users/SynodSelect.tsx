@@ -6,18 +6,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSynodStore } from "@/stores/synodStore";
+import { cn } from "@/lib/utils";
 
 interface SynodSelectProps {
   value?: string;
   onValueChange: (value: string) => void;
+  className?: string;
 }
 
-export const SynodSelect = ({ value, onValueChange }: SynodSelectProps) => {
+export const SynodSelect = ({ value, onValueChange, className }: SynodSelectProps) => {
   const { synods } = useSynodStore();
 
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger>
+      <SelectTrigger className={cn(className)}>
         <SelectValue placeholder="Sélectionner un synode" />
       </SelectTrigger>
       <SelectContent>

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserData } from "@/types/user";
+import { UserData, UserRole } from "@/types/user";
 
 const queryKeys = {
   users: ['users'] as const,
@@ -10,7 +10,7 @@ const queryKeys = {
 type RequiredUserData = {
   name: string;
   phone: string;
-  role: string;
+  role: UserRole;
   synod_id?: string;
   created_at?: string;
   updated_at?: string;
@@ -23,7 +23,7 @@ const validateUserData = (user: Partial<UserData>): user is RequiredUserData => 
   if (!user.phone?.trim()) {
     throw new Error("Le numéro de téléphone est requis");
   }
-  if (!user.role?.trim()) {
+  if (!user.role || !["MPIOMANA", "MPIANDRY", "MPAMPIANATRA", "IRAKA"].includes(user.role)) {
     throw new Error("La fonction est requise");
   }
   return true;
