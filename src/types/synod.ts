@@ -3,7 +3,9 @@ export interface Synod {
   name: string;
   description?: string;
   color: string;
-  memberCount: number;
+  memberCount?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export type SynodFormData = Omit<Synod, 'id' | 'memberCount'>;
+export type SynodFormData = Omit<Synod, 'id' | 'memberCount' | 'created_at' | 'updated_at'>;

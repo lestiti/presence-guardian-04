@@ -1,25 +1,35 @@
 import { create } from 'zustand';
 import { Synod } from '@/types/synod';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SynodStore {
   synods: Synod[];
   setSynods: (synods: Synod[]) => void;
+  fetchSynods: () => Promise<void>;
   updateMemberCount: (synodId: string, delta: number) => void;
 }
 
 export const useSynodStore = create<SynodStore>((set) => ({
-  synods: [
-    { id: "1", name: "Synode Antananarivo", description: "Région d'Antananarivo", color: "#10B981", memberCount: 0 },
-    { id: "2", name: "Synode Antsirabe", description: "Région d'Antsirabe", color: "#6366F1", memberCount: 0 },
-    { id: "3", name: "Synode Fianarantsoa", description: "Région de Fianarantsoa", color: "#EC4899", memberCount: 0 },
-    { id: "4", name: "Synode Toamasina", description: "Région de Toamasina", color: "#F59E0B", memberCount: 0 },
-  ],
+  synods: [],
   setSynods: (synods) => set({ synods }),
+  fetchSynods: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('synods')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      set({ synods: data || [] });
+    } catch (error) {
+      console.error('Error fetching synods:', error);
+    }
+  },
   updateMemberCount: (synodId, delta) => 
     set((state) => ({
       synods: state.synods.map(synod => 
         synod.id === synodId 
-          ? { ...synod, memberCount: synod.memberCount + delta }
+          ? { ...synod, memberCount: (synod.memberCount || 0) + delta }
           : synod
       )
     })),
