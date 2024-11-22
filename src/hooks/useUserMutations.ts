@@ -38,11 +38,11 @@ export const useCreateUser = () => {
         return;
       }
 
-      const userData: RequiredUserData = {
+      const userData = {
         name: user.name,
         phone: user.phone,
         role: user.role,
-        synod_id: user.synod_id,
+        synod_id: user.synod_id || null,
       };
 
       const { data, error } = await supabase
@@ -82,11 +82,11 @@ export const useUpdateUser = () => {
         throw new Error("ID invalide");
       }
 
-      const userData: RequiredUserData = {
+      const userData = {
         name: user.name,
         phone: user.phone,
         role: user.role,
-        synod_id: user.synod_id,
+        synod_id: user.synod_id || null,
       };
 
       const { data, error } = await supabase
