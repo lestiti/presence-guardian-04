@@ -7,12 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 
 interface AccessCodeDialogProps {
   isOpen: boolean;
@@ -43,17 +39,17 @@ export const AccessCodeDialog = ({ isOpen, onClose, redirectPath }: AccessCodeDi
           <DialogTitle>Code d'accès requis</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4">
-          <InputOTP
-            maxLength={8}
+          <Input
+            type="password"
             value={value}
-            onChange={(value) => setValue(value)}
-            render={({ slots }) => (
-              <InputOTPGroup>
-                {slots.map((slot, index) => (
-                  <InputOTPSlot key={index} {...slot} index={index} />
-                ))}
-              </InputOTPGroup>
-            )}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Entrez le code d'accès"
+            className="text-center"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSubmit();
+              }
+            }}
           />
           <Button onClick={handleSubmit} className="w-full">
             Valider
