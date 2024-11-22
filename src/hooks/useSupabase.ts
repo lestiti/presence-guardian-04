@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { UserData, isValidUserRole } from "@/types/user";
 
 // Optimized query keys
 const queryKeys = {
@@ -78,7 +79,17 @@ export const useUsers = () => {
         .order("name");
       
       if (error) throw error;
-      return data;
+      
+      // Validate and transform the data to ensure it matches UserData type
+      const validatedData = data.map(user => {
+        if (!isValidUserRole(user.role)) {
+          console.error(`Invalid role found: ${user.role}`);
+          throw new Error(`Invalid role: ${user.role}`);
+        }
+        return user as UserData;
+      });
+      
+      return validatedData;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

@@ -1,7 +1,9 @@
+export type UserRole = "MPIOMANA" | "MPIANDRY" | "MPAMPIANATRA" | "IRAKA";
+
 export interface UserData {
   id: string;
   name: string;
-  role: "MPIOMANA" | "MPIANDRY" | "MPAMPIANATRA" | "IRAKA";
+  role: UserRole;
   synod_id: string;
   phone: string;
   created_at?: string;
@@ -11,3 +13,7 @@ export interface UserData {
     color: string;
   };
 }
+
+export const isValidUserRole = (role: string): role is UserRole => {
+  return ["MPIOMANA", "MPIANDRY", "MPAMPIANATRA", "IRAKA"].includes(role);
+};
