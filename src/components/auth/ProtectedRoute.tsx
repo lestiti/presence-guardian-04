@@ -11,15 +11,17 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const handleClose = () => {
+    setShowDialog(false);
+    navigate("/", { replace: true });
+  };
+
   return (
     <>
-      {showDialog ? null : children}
+      {!showDialog && children}
       <AccessCodeDialog
         isOpen={showDialog}
-        onClose={() => {
-          setShowDialog(false);
-          navigate("/");
-        }}
+        onClose={handleClose}
         redirectPath={location.pathname}
       />
     </>

@@ -24,7 +24,8 @@ export const AccessCodeDialog = ({ isOpen, onClose, redirectPath }: AccessCodeDi
     if (value === "FPVM*2024") {
       toast.success("Code d'accès correct");
       onClose();
-      navigate(redirectPath);
+      // Utilisation de replace pour éviter les problèmes de navigation
+      navigate(redirectPath, { replace: true });
     } else {
       toast.error("Code d'accès incorrect");
       setValue("");
