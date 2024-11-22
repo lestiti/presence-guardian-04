@@ -76,6 +76,12 @@ export const useUpdateUser = () => {
         return;
       }
 
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        throw new Error("ID invalide");
+      }
+
       const userData: RequiredUserData = {
         name: user.name,
         phone: user.phone,
@@ -111,6 +117,12 @@ export const useDeleteUser = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        throw new Error("ID invalide");
+      }
+
       const { error } = await supabase
         .from("users")
         .delete()
