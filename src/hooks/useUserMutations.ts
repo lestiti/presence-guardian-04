@@ -7,14 +7,34 @@ const queryKeys = {
   users: ['users'] as const,
 };
 
+type RequiredUserData = {
+  name: string;
+  phone: string;
+  role: string;
+  synod_id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (user: Partial<UserData>) => {
+      if (!user.name || !user.phone || !user.role) {
+        throw new Error("Missing required fields");
+      }
+
+      const userData: RequiredUserData = {
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        synod_id: user.synod_id,
+      };
+
       const { data, error } = await supabase
         .from("users")
-        .insert(user)
+        .insert(userData)
         .select()
         .single();
       
@@ -32,9 +52,20 @@ export const useUpdateUser = () => {
   
   return useMutation({
     mutationFn: async ({ id, ...user }: Partial<UserData> & { id: string }) => {
+      if (!user.name || !user.phone || !user.role) {
+        throw new Error("Missing required fields");
+      }
+
+      const userData: RequiredUserData = {
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        synod_id: user.synod_id,
+      };
+
       const { data, error } = await supabase
         .from("users")
-        .update(user)
+        .update(userData)
         .eq('id', id)
         .select()
         .single();
