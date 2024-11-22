@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { UserData, isValidUserRole } from "@/types/user";
+import { toast } from "sonner";
 
 // Optimized query keys
 const queryKeys = {
@@ -32,7 +33,7 @@ const setupRealtimeSubscription = (
   };
 };
 
-// Users with optimized realtime updates
+// Users with optimized realtime updates and error handling
 export const useUsers = () => {
   const queryClient = useQueryClient();
 
@@ -43,31 +44,46 @@ export const useUsers = () => {
   return useQuery({
     queryKey: queryKeys.users,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("users")
-        .select(`
-          *,
-          synods (
-            name,
-            color
-          )
-        `)
-        .order("name");
-      
-      if (error) throw error;
-      
-      // Validate and transform the data
-      const validatedData = data.map(user => {
-        if (!isValidUserRole(user.role)) {
-          console.error(`Invalid role found: ${user.role}`);
-          throw new Error(`Invalid role: ${user.role}`);
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select(`
+            *,
+            synods (
+              name,
+              color
+            )
+          `)
+          .order("name");
+        
+        if (error) {
+          console.error("Error fetching users:", error);
+          toast.error("Erreur lors du chargement des utilisateurs");
+          throw error;
         }
-        return user as UserData;
-      });
-      
-      return validatedData;
+        
+        if (!data) {
+          return [];
+        }
+
+        // Validate and transform the data
+        const validatedData = data.map(user => {
+          if (!isValidUserRole(user.role)) {
+            console.error(`Invalid role found: ${user.role}`);
+            throw new Error(`Invalid role: ${user.role}`);
+          }
+          return user as UserData;
+        });
+        
+        return validatedData;
+      } catch (error) {
+        console.error("Error in useUsers query:", error);
+        toast.error("Erreur lors du chargement des utilisateurs");
+        throw error;
+      }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
   });
 };
 
