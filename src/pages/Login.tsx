@@ -57,6 +57,18 @@ const Login = () => {
               anchor: 'text-white hover:text-primary transition-colors duration-200',
             }
           }}
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: 'Email',
+                password_label: 'Mot de passe',
+                button_label: 'Se connecter',
+                loading_button_label: 'Connexion en cours...',
+                email_input_placeholder: 'Votre email',
+                password_input_placeholder: 'Votre mot de passe',
+              }
+            }
+          }}
           theme="dark"
           providers={[]}
           view="sign_in"
