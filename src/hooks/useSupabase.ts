@@ -48,12 +48,13 @@ export const useUsers = () => {
         const { data, error } = await supabase
           .from("users")
           .select("*, synods(name, color)")
-          .order("name");
+          .order("name")
+          .throwOnError();
 
         if (error) {
           console.error("Error fetching users:", error);
           toast.error("Erreur lors du chargement des utilisateurs");
-          throw error;
+          return [];
         }
 
         if (!data) {
@@ -61,18 +62,21 @@ export const useUsers = () => {
         }
 
         // Validate and transform the data
-        return data.map(user => {
-          if (!user || !isValidUserRole(user.role)) {
-            console.error(`Invalid user data or role: ${JSON.stringify(user)}`);
-            return null;
-          }
-          return user as UserData;
-        }).filter(Boolean) as UserData[];
+        return data
+          .filter(user => user !== null)
+          .map(user => {
+            if (!isValidUserRole(user.role)) {
+              console.warn(`Invalid role found for user: ${user.id}`);
+              return null;
+            }
+            return user as UserData;
+          })
+          .filter(Boolean) as UserData[];
 
       } catch (error) {
         console.error("Error in useUsers query:", error);
         toast.error("Erreur lors du chargement des utilisateurs");
-        throw error;
+        return [];
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
