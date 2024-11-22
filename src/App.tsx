@@ -7,10 +7,16 @@ import { Layout } from "./components/layout/Layout";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Suspense, lazy } from 'react';
 import { LoadingSpinner } from "./components/ui/loading";
+import { Error } from "./components/ui/error";
 
 // Lazy load pages
 const Index = lazy(() => import("./pages/Index"));
-const Users = lazy(() => import("./pages/Users"));
+const Users = lazy(() => 
+  import("./pages/Users")
+    .catch(() => ({
+      default: () => <Error message="Erreur lors du chargement de la page" />
+    }))
+);
 const Synods = lazy(() => import("./pages/Synods"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
