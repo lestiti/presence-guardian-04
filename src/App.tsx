@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "./components/layout/Layout";
 import { Suspense } from 'react';
 import { LoadingSpinner } from "./components/ui/loading";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 // Import pages
 import Index from "./pages/Index";
@@ -15,7 +14,6 @@ import Synods from "./pages/Synods";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Attendance from "./pages/Attendance";
-import Login from "./pages/Login";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,56 +32,19 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            element={
-              <ProtectedRoute requireAuth={true}>
-                <Layout>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route
-                        path="/users"
-                        element={
-                          <ProtectedRoute allowedRoles={['super_admin']}>
-                            <Users />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/synods"
-                        element={
-                          <ProtectedRoute allowedRoles={['super_admin']}>
-                            <Synods />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/reports"
-                        element={
-                          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
-                            <Reports />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route path="/attendance" element={<Attendance />} />
-                      <Route
-                        path="/settings"
-                        element={
-                          <ProtectedRoute allowedRoles={['super_admin']}>
-                            <Settings />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                  </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Layout>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/synods" element={<Synods />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </Layout>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

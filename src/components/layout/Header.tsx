@@ -1,17 +1,11 @@
 import { useState } from "react";
-import { Menu, User, BarChart2, Users, Grid, QrCode, Settings, X, LogOut } from "lucide-react";
+import { Menu, BarChart2, Users, Grid, QrCode, Settings, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  const isSuperAdmin = user?.role === 'super_admin';
-  const isAdmin = user?.role === 'admin';
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/5 backdrop-blur-glass shadow-glass border border-white/20 z-50">
@@ -49,27 +43,23 @@ export const Header = () => {
               <span>Dashboard</span>
             </Link>
 
-            {isSuperAdmin && (
-              <Link 
-                to="/users" 
-                className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
-                onClick={toggleMenu}
-              >
-                <Users className="w-4 h-4" />
-                <span>Utilisateurs</span>
-              </Link>
-            )}
+            <Link 
+              to="/users" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
+              onClick={toggleMenu}
+            >
+              <Users className="w-4 h-4" />
+              <span>Utilisateurs</span>
+            </Link>
 
-            {isSuperAdmin && (
-              <Link 
-                to="/synods" 
-                className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
-                onClick={toggleMenu}
-              >
-                <Grid className="w-4 h-4" />
-                <span>Synodes</span>
-              </Link>
-            )}
+            <Link 
+              to="/synods" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
+              onClick={toggleMenu}
+            >
+              <Grid className="w-4 h-4" />
+              <span>Synodes</span>
+            </Link>
 
             <Link 
               to="/attendance" 
@@ -80,51 +70,24 @@ export const Header = () => {
               <span>Pointage</span>
             </Link>
 
-            {(isSuperAdmin || isAdmin) && (
-              <Link 
-                to="/reports" 
-                className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
-                onClick={toggleMenu}
-              >
-                <BarChart2 className="w-4 h-4" />
-                <span>Rapports</span>
-              </Link>
-            )}
+            <Link 
+              to="/reports" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
+              onClick={toggleMenu}
+            >
+              <BarChart2 className="w-4 h-4" />
+              <span>Rapports</span>
+            </Link>
 
-            {isSuperAdmin && (
-              <Link 
-                to="/settings" 
-                className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
-                onClick={toggleMenu}
-              >
-                <Settings className="w-4 h-4" />
-                <span>Paramètres</span>
-              </Link>
-            )}
+            <Link 
+              to="/settings" 
+              className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
+              onClick={toggleMenu}
+            >
+              <Settings className="w-4 h-4" />
+              <span>Paramètres</span>
+            </Link>
           </nav>
-
-          <div className="flex items-center space-x-4">
-            {user ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={logout}
-                className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 transition-all duration-300 hover:bg-white/20 active:scale-95"
-              >
-                <LogOut className="w-5 h-5 text-white" />
-              </Button>
-            ) : (
-              <Link to="/login">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 transition-all duration-300 hover:bg-white/20 active:scale-95"
-                >
-                  <User className="w-5 h-5 text-white" />
-                </Button>
-              </Link>
-            )}
-          </div>
         </div>
       </div>
     </header>
