@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { toPng } from "html-to-image";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { CodeRenderer } from "./CodeRenderer";
+import { generateImage, downloadZipFile } from "@/utils/downloadHelpers";
+import { useCallback } from "react";
 
 interface CodeDownloaderProps {
   userId: string;
@@ -11,93 +12,70 @@ interface CodeDownloaderProps {
 }
 
 export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
-  const generateImage = async (element: HTMLElement): Promise<string> => {
-    try {
-      return await toPng(element, {
-        quality: 0.95,
-        pixelRatio: 2
-      });
-    } catch (error) {
-      console.error("Error generating image:", error);
-      throw error;
-    }
-  };
-
-  const handleDownload = async () => {
-    const zip = new JSZip();
+  const handleDownload = useCallback(async () => {
     const toastId = toast.loading("Génération des codes en cours...");
-
+    const zip = new JSZip();
+    
     try {
-      // Créer des conteneurs temporaires
+      // Create temporary containers
       const qrContainer = document.createElement('div');
       const barcodeContainer = document.createElement('div');
       
-      // Ajouter les conteneurs au DOM mais les cacher
-      qrContainer.style.position = 'absolute';
-      qrContainer.style.left = '-9999px';
-      barcodeContainer.style.position = 'absolute';
-      barcodeContainer.style.left = '-9999px';
-      
-      document.body.appendChild(qrContainer);
-      document.body.appendChild(barcodeContainer);
+      // Set up containers
+      [qrContainer, barcodeContainer].forEach(container => {
+        container.style.cssText = 'position: absolute; left: -9999px;';
+        document.body.appendChild(container);
+      });
 
-      // Rendre les codes
+      // Render codes
       const qrRoot = document.createElement('div');
       const barcodeRoot = document.createElement('div');
       qrContainer.appendChild(qrRoot);
       barcodeContainer.appendChild(barcodeRoot);
 
-      // Générer les images une par une
-      const qrImage = await generateImage(qrContainer);
-      const barcodeImage = await generateImage(barcodeContainer);
+      // Generate images with proper error handling
+      const [qrImage, barcodeImage] = await Promise.all([
+        generateImage(qrContainer, { width: 256, height: 256 }),
+        generateImage(barcodeContainer, { width: 300, height: 100 })
+      ]);
 
-      // Ajouter au ZIP
+      // Add to ZIP
       zip.file(`${userName}-qr.png`, qrImage.split('base64,')[1], { base64: true });
       zip.file(`${userName}-barcode.png`, barcodeImage.split('base64,')[1], { base64: true });
 
-      // Générer et télécharger le ZIP
+      // Generate and download ZIP
       const content = await zip.generateAsync({ type: "blob" });
-      const url = window.URL.createObjectURL(content);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${userName}-codes.zip`;
-      document.body.appendChild(link);
-      link.click();
-
-      // Nettoyage
-      document.body.removeChild(link);
-      document.body.removeChild(qrContainer);
-      document.body.removeChild(barcodeContainer);
-      window.URL.revokeObjectURL(url);
+      await downloadZipFile(content, `${userName}-codes.zip`);
 
       toast.success("Codes téléchargés avec succès", { id: toastId });
     } catch (error) {
       console.error("Erreur lors du téléchargement:", error);
       toast.error("Erreur lors du téléchargement des codes", { id: toastId });
+    } finally {
+      // Cleanup
+      document.querySelectorAll('div[style*="-9999px"]').forEach(el => el.remove());
     }
-  };
+  }, [userName]);
 
   return (
-    <>
-      <div className="space-y-6 py-4">
-        <div className="space-y-2">
-          <h3 className="text-lg font-medium">QR Code</h3>
-          <CodeRenderer userId={userId} type="qr" />
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-lg font-medium">Code-barres</h3>
-          <CodeRenderer userId={userId} type="barcode" />
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleDownload}
-          className="w-full"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Télécharger les codes
-        </Button>
+    <div className="space-y-6 py-4">
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">QR Code</h3>
+        <CodeRenderer userId={userId} type="qr" />
       </div>
-    </>
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">Code-barres</h3>
+        <CodeRenderer userId={userId} type="barcode" />
+      </div>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={handleDownload}
+        className="w-full"
+      >
+        <Download className="w-4 h-4 mr-2" />
+        Télécharger les codes
+      </Button>
+    </div>
   );
 };
