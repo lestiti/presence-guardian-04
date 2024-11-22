@@ -43,15 +43,26 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      if (error) throw error;
-      navigate('/');
-      toast.success('Connexion réussie');
+
+      if (error) {
+        if (error.message === 'Invalid login credentials') {
+          toast.error('Email ou mot de passe incorrect');
+        } else {
+          toast.error('Erreur lors de la connexion. Veuillez réessayer.');
+        }
+        throw error;
+      }
+
+      if (data?.user) {
+        navigate('/');
+        toast.success('Connexion réussie');
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Erreur lors de la connexion');
+      console.error('Login error:', error);
     }
   };
 
@@ -61,7 +72,8 @@ export const useAuth = () => {
       navigate('/login');
       toast.success('Déconnexion réussie');
     } catch (error: any) {
-      toast.error(error.message || 'Erreur lors de la déconnexion');
+      console.error('Logout error:', error);
+      toast.error('Erreur lors de la déconnexion');
     }
   };
 
