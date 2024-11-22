@@ -44,11 +44,11 @@ export const AccessCodeDialog = ({ isOpen, onClose, redirectPath }: AccessCodeDi
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4">
           <InputOTP
+            maxLength={8}
             value={value}
             onChange={(value) => setValue(value)}
-            maxLength={8}
             render={({ slots }) => (
-              <InputOTPGroup className="gap-2">
+              <InputOTPGroup>
                 {slots.map((slot, index) => (
                   <InputOTPSlot key={index} {...slot} index={index} />
                 ))}
