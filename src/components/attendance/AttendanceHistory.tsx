@@ -42,7 +42,7 @@ export const AttendanceHistory = ({ scans, userName }: AttendanceHistoryProps) =
                   {new Date(scan.timestamp).toLocaleTimeString()}
                 </div>
               </TableCell>
-              <TableCell>{scan.scanType}</TableCell>
+              <TableCell>{scan.scan_type}</TableCell>
               <TableCell>
                 <span className={`px-2 py-1 rounded-full text-xs ${
                   scan.direction === "IN" 

@@ -113,9 +113,9 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
         <div className="space-y-2">
           <Label htmlFor="synod">Synode</Label>
           <SynodSelect
-            value={formData.synod}
+            value={formData.synod_id}
             onValueChange={(value) => {
-              setFormData({ ...formData, synod: value });
+              setFormData({ ...formData, synod_id: value });
               setHasChanges(true);
             }}
           />

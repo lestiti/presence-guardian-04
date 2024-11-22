@@ -14,7 +14,7 @@ export const ExportButton = ({ users }: ExportButtonProps) => {
       const csvContent = [
         headers.join(","),
         ...users.map(user => 
-          [user.name, user.phone, user.role, user.synod].join(",")
+          [user.name, user.phone, user.role, user.synod_id].join(",")
         )
       ].join("\n");
 

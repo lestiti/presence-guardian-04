@@ -34,7 +34,7 @@ export const ImportPreview = ({ users, onImport, hasErrors }: ImportPreviewProps
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.phone}</TableCell>
                 <TableCell>{user.role}</TableCell>
-                <TableCell>{user.synod}</TableCell>
+                <TableCell>{user.synod_id}</TableCell>
               </TableRow>
             ))}
           </TableBody>

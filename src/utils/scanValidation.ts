@@ -5,8 +5,8 @@ export const validateScan = (
   existingScans: ScanRecord[]
 ): { isValid: boolean; message: string } => {
   const userScans = existingScans.filter(scan => 
-    scan.userId === newScan.userId && 
-    scan.attendanceId === newScan.attendanceId
+    scan.user_id === newScan.user_id && 
+    scan.attendance_id === newScan.attendance_id
   );
 
   const lastScan = userScans[userScans.length - 1];
@@ -21,7 +21,6 @@ export const validateScan = (
     return { isValid: true, message: "Check-in effectué avec succès" };
   }
 
-  // Pour un check-out
   if (!lastScan || lastScan.direction === "OUT") {
     return {
       isValid: false,
@@ -33,13 +32,13 @@ export const validateScan = (
 };
 
 export const getCurrentStatus = (
-  userId: string,
-  attendanceId: string,
+  user_id: string,
+  attendance_id: string,
   scans: ScanRecord[]
 ): AttendanceStatus => {
   const userScans = scans.filter(scan => 
-    scan.userId === userId && 
-    scan.attendanceId === attendanceId
+    scan.user_id === user_id && 
+    scan.attendance_id === attendance_id
   );
 
   const lastScan = userScans[userScans.length - 1];

@@ -27,8 +27,8 @@ const ITEMS_PER_PAGE = 5;
 const Users = () => {
   const { synods } = useSynodStore();
   const [users, setUsers] = useState<UserData[]>([
-    { id: "1", name: "John Doe", role: "MPIOMANA", synod: "1", phone: "+261340000001" },
-    { id: "2", name: "Jane Smith", role: "MPIANDRY", synod: "2", phone: "+261340000002" },
+    { id: "1", name: "John Doe", role: "MPIOMANA", synod_id: "1", phone: "+261340000001" },
+    { id: "2", name: "Jane Smith", role: "MPIANDRY", synod_id: "2", phone: "+261340000002" },
   ]);
 
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
@@ -43,22 +43,22 @@ const Users = () => {
   const [formData, setFormData] = useState<Partial<UserData>>({
     name: "",
     role: "MPIOMANA",
-    synod: "",
+    synod_id: "",
     phone: "",
   });
 
   const uniqueSynods = useMemo(() => 
-    Array.from(new Set(users.map(user => user.synod))),
+    Array.from(new Set(users.map(user => user.synod_id))),
     [users]
   );
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.synod.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.synod_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            user.phone.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = roleFilter === "all" || user.role === roleFilter;
-      const matchesSynod = synodFilter === "all" || user.synod === synodFilter;
+      const matchesSynod = synodFilter === "all" || user.synod_id === synodFilter;
       return matchesSearch && matchesRole && matchesSynod;
     });
   }, [users, searchTerm, roleFilter, synodFilter]);
@@ -100,7 +100,7 @@ const Users = () => {
     }
     setShowUserDialog(false);
     setSelectedUser(null);
-    setFormData({ name: "", role: "MPIOMANA", synod: "", phone: "" });
+    setFormData({ name: "", role: "MPIOMANA", synod_id: "", phone: "" });
   };
 
   const handleConfirmDelete = () => {
@@ -133,7 +133,7 @@ const Users = () => {
         onImport={handleImportUsers}
         onNewUser={() => {
           setSelectedUser(null);
-          setFormData({ name: "", role: "MPIOMANA", synod: "", phone: "" });
+          setFormData({ name: "", role: "MPIOMANA", synod_id: "", phone: "" });
           setShowUserDialog(true);
         }}
         existingSynods={synods.map(s => s.id)}
