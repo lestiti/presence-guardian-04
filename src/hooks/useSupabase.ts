@@ -47,35 +47,28 @@ export const useUsers = () => {
       try {
         const { data, error } = await supabase
           .from("users")
-          .select(`
-            *,
-            synods (
-              name,
-              color
-            )
-          `)
+          .select("*, synods(name, color)")
           .order("name");
-        
+
         if (error) {
           console.error("Error fetching users:", error);
           toast.error("Erreur lors du chargement des utilisateurs");
           throw error;
         }
-        
+
         if (!data) {
           return [];
         }
 
         // Validate and transform the data
-        const validatedData = data.map(user => {
-          if (!isValidUserRole(user.role)) {
-            console.error(`Invalid role found: ${user.role}`);
-            throw new Error(`Invalid role: ${user.role}`);
+        return data.map(user => {
+          if (!user || !isValidUserRole(user.role)) {
+            console.error(`Invalid user data or role: ${JSON.stringify(user)}`);
+            return null;
           }
           return user as UserData;
-        });
-        
-        return validatedData;
+        }).filter(Boolean) as UserData[];
+
       } catch (error) {
         console.error("Error in useUsers query:", error);
         toast.error("Erreur lors du chargement des utilisateurs");
