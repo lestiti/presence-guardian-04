@@ -48,10 +48,8 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
       newErrors.name = "Le nom est requis";
     }
 
-    if (!formData.phone) {
+    if (!formData.phone?.trim()) {
       newErrors.phone = "Le numéro de téléphone est requis";
-    } else if (!isValidMadagascarPhone(formData.phone)) {
-      newErrors.phone = "Format invalide (+261 XX XXX XX)";
     }
 
     if (!formData.role) {
@@ -67,8 +65,8 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedPhone = formatPhoneNumber(e.target.value);
-    setFormData({ ...formData, phone: formattedPhone });
+    const phoneValue = e.target.value;
+    setFormData({ ...formData, phone: phoneValue });
     setHasChanges(true);
     if (errors.phone) {
       setErrors(prev => ({ ...prev, phone: "" }));
@@ -121,7 +119,6 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
             type="tel"
             value={formData.phone || ""}
             onChange={handlePhoneChange}
-            placeholder="+261 34 000 00 00"
             className={errors.phone ? "border-destructive" : ""}
           />
           {errors.phone && (
