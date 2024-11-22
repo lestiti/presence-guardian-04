@@ -22,7 +22,6 @@ export const AccessCodeDialog = ({ isOpen, onClose, redirectPath }: AccessCodeDi
 
   const handleSubmit = () => {
     if (value === "FPVM*2024") {
-      sessionStorage.setItem("hasAccess", "true");
       toast.success("Code d'accès correct");
       onClose();
       navigate(redirectPath);

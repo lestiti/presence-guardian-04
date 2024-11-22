@@ -31,15 +31,15 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/synods" element={<Synods />} />
             <Route
-              path="/reports"
+              path="/synods"
               element={
                 <ProtectedRoute>
-                  <Reports />
+                  <Synods />
                 </ProtectedRoute>
               }
             />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/attendance" element={<Attendance />} />
             <Route
               path="/settings"
