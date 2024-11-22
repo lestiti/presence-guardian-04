@@ -1,25 +1,10 @@
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { UserForm } from "@/components/users/UserForm";
 import { UserData } from "@/types/user";
 import { toast } from "sonner";
-import QRCode from "react-qr-code";
-import ReactBarcode from "react-barcode";
-import { generateUniqueQRCode, generateUniqueBarcode } from "@/utils/codeGenerators";
 import { UsersHeader } from "@/components/users/UsersHeader";
 import { UsersFilters } from "@/components/users/UsersFilters";
 import { UsersTable } from "@/components/users/UsersTable";
-import { CodeDownloader } from "@/components/users/CodeDownloader";
+import { UserDialogs } from "@/components/users/UserDialogs";
 import { useSynodStore } from "@/stores/synodStore";
 
 const ITEMS_PER_PAGE = 5;
@@ -46,11 +31,6 @@ const Users = () => {
     synod_id: "",
     phone: "",
   });
-
-  const uniqueSynods = useMemo(() => 
-    Array.from(new Set(users.map(user => user.synod_id))),
-    [users]
-  );
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
@@ -112,11 +92,6 @@ const Users = () => {
     setSelectedUser(null);
   };
 
-  const getSynodName = (synodId: string) => {
-    const synod = synods.find(s => s.id === synodId);
-    return synod ? synod.name : synodId;
-  };
-
   const handleImportUsers = (importedUsers: UserData[]) => {
     const newUsers = importedUsers.map(user => ({
       ...user,
@@ -124,6 +99,11 @@ const Users = () => {
     }));
     setUsers([...users, ...newUsers]);
     toast.success(`${newUsers.length} utilisateurs importés avec succès`);
+  };
+
+  const getSynodName = (synodId: string) => {
+    const synod = synods.find(s => s.id === synodId);
+    return synod ? synod.name : synodId;
   };
 
   return (
@@ -159,75 +139,19 @@ const Users = () => {
         getSynodName={getSynodName}
       />
 
-      <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-        <DialogContent>
-          <UserForm
-            formData={formData}
-            setFormData={setFormData}
-            onSave={handleSaveUser}
-            onCancel={() => setShowUserDialog(false)}
-            isEdit={!!selectedUser}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cela supprimera définitivement l'utilisateur
-              {selectedUser && ` "${selectedUser.name}"`} et toutes ses données associées.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Dialog open={showCodesDialog} onOpenChange={setShowCodesDialog}>
-        <DialogContent className="sm:max-w-md">
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">QR Code pour {selectedUser?.name}</h3>
-              <div className="flex justify-center p-4 bg-white rounded-lg">
-                {selectedUser && (
-                  <div id={`qr-${selectedUser.id}`}>
-                    <QRCode
-                      value={generateUniqueQRCode(selectedUser.id)}
-                      size={128}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">Code-barres</h3>
-              <div className="flex justify-center p-4 bg-white rounded-lg">
-                {selectedUser && (
-                  <div id={`barcode-${selectedUser.id}`}>
-                    <ReactBarcode 
-                      value={generateUniqueBarcode(selectedUser.id)}
-                      height={50}
-                      displayValue={true}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            {selectedUser && (
-              <CodeDownloader 
-                userId={selectedUser.id} 
-                userName={selectedUser.name}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <UserDialogs
+        selectedUser={selectedUser}
+        showUserDialog={showUserDialog}
+        showDeleteDialog={showDeleteDialog}
+        showCodesDialog={showCodesDialog}
+        formData={formData}
+        setFormData={setFormData}
+        onSaveUser={handleSaveUser}
+        onConfirmDelete={handleConfirmDelete}
+        setShowUserDialog={setShowUserDialog}
+        setShowDeleteDialog={setShowDeleteDialog}
+        setShowCodesDialog={setShowCodesDialog}
+      />
     </div>
   );
 };
