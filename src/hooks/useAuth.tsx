@@ -15,87 +15,76 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Handle auth state changes
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          const { data: profile } = await supabase
-            .from('auth_profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        const { data: profile } = await supabase
+          .from('auth_profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
 
-          setUser({
-            id: session.user.id,
-            role: profile?.role || 'public'
-          });
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
+        setUser({
+          id: session.user.id,
+          role: profile?.role || 'public'
+        });
+      } else {
+        setUser(null);
       }
-    );
+      setLoading(false);
+    });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
+  // Simplified login function
   const login = async (email: string, password: string) => {
-    // Input validation
-    if (!email?.trim() || !password?.trim()) {
-      toast.error('Veuillez remplir tous les champs');
+    if (!email?.trim()) {
+      toast.error("L'email est requis");
+      return;
+    }
+
+    if (!password?.trim()) {
+      toast.error("Le mot de passe est requis");
       return;
     }
 
     try {
-      // Attempt login
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim()
       });
 
-      // Handle authentication errors
       if (error) {
-        console.error('Login error:', error);
-        
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Email ou mot de passe incorrect');
-        } else {
-          toast.error('Erreur lors de la connexion. Veuillez réessayer.');
-        }
+        toast.error(error.message === 'Invalid login credentials' 
+          ? 'Email ou mot de passe incorrect'
+          : 'Erreur lors de la connexion');
         return;
       }
 
-      // Validate user data
-      if (!data?.user?.id) {
-        toast.error('Erreur lors de la connexion. Veuillez réessayer.');
-        return;
-      }
-
-      // Success notification and navigation
       toast.success('Connexion réussie');
       navigate('/');
-    } catch (error) {
-      console.error('Unexpected login error:', error);
-      toast.error('Une erreur inattendue est survenue');
+    } catch {
+      toast.error('Erreur lors de la connexion');
     }
   };
 
+  // Simplified logout function
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Logout error:', error);
         toast.error('Erreur lors de la déconnexion');
         return;
       }
 
       navigate('/login');
       toast.success('Déconnexion réussie');
-    } catch (error) {
-      console.error('Unexpected logout error:', error);
+    } catch {
       toast.error('Erreur lors de la déconnexion');
     }
   };
