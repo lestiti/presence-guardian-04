@@ -15,7 +15,6 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Handle auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
@@ -40,39 +39,6 @@ export const useAuth = () => {
     };
   }, []);
 
-  // Simplified login function
-  const login = async (email: string, password: string) => {
-    if (!email?.trim()) {
-      toast.error("L'email est requis");
-      return;
-    }
-
-    if (!password?.trim()) {
-      toast.error("Le mot de passe est requis");
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim()
-      });
-
-      if (error) {
-        toast.error(error.message === 'Invalid login credentials' 
-          ? 'Email ou mot de passe incorrect'
-          : 'Erreur lors de la connexion');
-        return;
-      }
-
-      toast.success('Connexion réussie');
-      navigate('/');
-    } catch {
-      toast.error('Erreur lors de la connexion');
-    }
-  };
-
-  // Simplified logout function
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -89,5 +55,5 @@ export const useAuth = () => {
     }
   };
 
-  return { user, loading, login, logout };
+  return { user, loading, logout };
 };
