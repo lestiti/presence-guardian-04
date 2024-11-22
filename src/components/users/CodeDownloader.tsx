@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { CodeRenderer } from "./CodeRenderer";
-import { generateImage, downloadZipFile } from "@/utils/downloadHelpers";
+import { generateCodeImages, downloadZipFile } from "@/utils/downloadHelpers";
 import { useCallback } from "react";
 
 interface CodeDownloaderProps {
@@ -17,27 +17,7 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
     const zip = new JSZip();
     
     try {
-      // Create temporary containers
-      const qrContainer = document.createElement('div');
-      const barcodeContainer = document.createElement('div');
-      
-      // Set up containers
-      [qrContainer, barcodeContainer].forEach(container => {
-        container.style.cssText = 'position: absolute; left: -9999px;';
-        document.body.appendChild(container);
-      });
-
-      // Render codes
-      const qrRoot = document.createElement('div');
-      const barcodeRoot = document.createElement('div');
-      qrContainer.appendChild(qrRoot);
-      barcodeContainer.appendChild(barcodeRoot);
-
-      // Generate images with proper error handling
-      const [qrImage, barcodeImage] = await Promise.all([
-        generateImage(qrContainer, { width: 256, height: 256 }),
-        generateImage(barcodeContainer, { width: 300, height: 100 })
-      ]);
+      const { qrImage, barcodeImage } = await generateCodeImages(userId, userName);
 
       // Add to ZIP
       zip.file(`${userName}-qr.png`, qrImage.split('base64,')[1], { base64: true });
@@ -51,11 +31,8 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
     } catch (error) {
       console.error("Erreur lors du téléchargement:", error);
       toast.error("Erreur lors du téléchargement des codes", { id: toastId });
-    } finally {
-      // Cleanup
-      document.querySelectorAll('div[style*="-9999px"]').forEach(el => el.remove());
     }
-  }, [userName]);
+  }, [userId, userName]);
 
   return (
     <div className="space-y-6 py-4">
