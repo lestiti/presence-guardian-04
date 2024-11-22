@@ -93,9 +93,22 @@ export const Header = () => {
             <Button
               variant="outline"
               onClick={handleAccessClick}
-              className="text-white border-white/20 hover:bg-white/20"
+              className="relative overflow-hidden group px-6 py-2 text-white border border-white/20 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-glow hover:border-primary/50 active:scale-95"
             >
-              {role === 'public' ? 'Accès administrateur' : 'Déconnexion'}
+              <span className="relative z-10 flex items-center gap-2">
+                {role === 'public' ? (
+                  <>
+                    <span className="text-sm font-medium">Accès administrateur</span>
+                    <Settings className="w-4 h-4 animate-spin-slow" />
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm font-medium">Déconnexion</span>
+                    <X className="w-4 h-4" />
+                  </>
+                )}
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             </Button>
 
             <nav className={`${isMenuOpen ? 'block' : 'hidden'} lg:flex absolute lg:relative top-16 lg:top-0 left-0 right-0 bg-white lg:bg-transparent shadow-soft lg:shadow-none p-4 lg:p-0 space-y-4 lg:space-y-0 lg:items-center lg:space-x-8 border border-gray-200 lg:border-0`}>

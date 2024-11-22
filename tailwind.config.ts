@@ -69,6 +69,10 @@ export default {
         "pulse-glow": {
           "0%, 100%": { boxShadow: "0 0 15px rgba(155, 135, 245, 0.5)" },
           "50%": { boxShadow: "0 0 25px rgba(155, 135, 245, 0.8)" },
+        },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
         }
       },
       animation: {
@@ -76,6 +80,7 @@ export default {
         "zoom-hover": "zoom-in 0.2s ease-out forwards",
         "slide-in": "slide-in 0.3s ease-out",
         "pulse-glow": "pulse-glow 2s infinite",
+        "spin-slow": "spin-slow 3s linear infinite",
       },
     },
   },
