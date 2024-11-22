@@ -11,24 +11,33 @@ const queryKeys = {
   scans: (attendanceId?: string) => ['scans', attendanceId] as const,
 };
 
-// Synods with realtime updates
+// Enhanced realtime subscription setup
+const setupRealtimeSubscription = (
+  table: string,
+  queryClient: ReturnType<typeof useQueryClient>,
+  queryKey: readonly unknown[]
+) => {
+  const channel = supabase
+    .channel(`public:${table}`)
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table },
+      (payload) => {
+        queryClient.invalidateQueries({ queryKey });
+      }
+    )
+    .subscribe();
+
+  return () => {
+    channel.unsubscribe();
+  };
+};
+
+// Synods with optimized realtime updates
 export const useSynods = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const subscription = supabase
-      .channel('synods_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'synods' },
-        (payload) => {
-          queryClient.invalidateQueries({ queryKey: queryKeys.synods });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    return setupRealtimeSubscription('synods', queryClient, queryKeys.synods);
   }, [queryClient]);
 
   return useQuery({
@@ -42,27 +51,16 @@ export const useSynods = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
-// Users with realtime updates
+// Users with optimized realtime updates
 export const useUsers = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const subscription = supabase
-      .channel('users_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'users' },
-        (payload) => {
-          queryClient.invalidateQueries({ queryKey: queryKeys.users });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    return setupRealtimeSubscription('users', queryClient, queryKeys.users);
   }, [queryClient]);
 
   return useQuery({
@@ -82,6 +80,7 @@ export const useUsers = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
@@ -111,8 +110,14 @@ export const useCreateUser = () => {
   });
 };
 
-// Attendance
+// Attendance with realtime updates
 export const useAttendance = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return setupRealtimeSubscription('attendance', queryClient, queryKeys.attendance);
+  }, [queryClient]);
+
   return useQuery({
     queryKey: queryKeys.attendance,
     queryFn: async () => {
@@ -124,11 +129,19 @@ export const useAttendance = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
-// Scans
+// Scans with realtime updates
 export const useScans = (attendanceId?: string) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!attendanceId) return;
+    return setupRealtimeSubscription('scans', queryClient, queryKeys.scans(attendanceId));
+  }, [queryClient, attendanceId]);
+
   return useQuery({
     queryKey: queryKeys.scans(attendanceId),
     queryFn: async () => {
@@ -157,6 +170,7 @@ export const useScans = (attendanceId?: string) => {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
     enabled: !!attendanceId,
   });
 };
@@ -180,8 +194,8 @@ export const useCreateScan = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.scans() });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.scans(data.attendance_id) });
       toast.success("Scan enregistré avec succès");
     },
     onError: (error) => {
