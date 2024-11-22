@@ -64,7 +64,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/5 backdrop-blur-glass shadow-glass border border-white/20 z-50">
+    <header className="fixed top-0 left-0 right-0 bg-white/5 backdrop-blur-glass shadow-glass border-b border-white/20 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
@@ -89,11 +89,11 @@ export const Header = () => {
             </Link>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 relative z-50">
             <Button
               variant="outline"
               onClick={handleAccessClick}
-              className="relative overflow-hidden group px-6 py-2 text-white border border-white/20 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-glow hover:border-primary/50 active:scale-95"
+              className="relative overflow-hidden group px-6 py-2 text-white border border-white/20 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-glow hover:border-primary/50 active:scale-95 bg-primary/10 backdrop-blur-sm"
             >
               <span className="relative z-10 flex items-center gap-2">
                 {role === 'public' ? (
@@ -111,12 +111,12 @@ export const Header = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             </Button>
 
-            <nav className={`${isMenuOpen ? 'block' : 'hidden'} lg:flex absolute lg:relative top-16 lg:top-0 left-0 right-0 bg-white lg:bg-transparent shadow-soft lg:shadow-none p-4 lg:p-0 space-y-4 lg:space-y-0 lg:items-center lg:space-x-8 border border-gray-200 lg:border-0`}>
+            <nav className={`${isMenuOpen ? 'block' : 'hidden'} lg:flex absolute lg:relative top-16 lg:top-0 left-0 right-0 bg-white/10 backdrop-blur-sm lg:bg-transparent shadow-soft lg:shadow-none p-4 lg:p-0 space-y-4 lg:space-y-0 lg:items-center lg:space-x-8 border border-white/20 lg:border-0 rounded-lg`}>
               {getAvailableLinks().map(({ to, icon: Icon, label }) => (
                 <Link 
                   key={to}
                   to={to} 
-                  className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
+                  className="nav-link flex items-center space-x-2 text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-white/20 hover:text-white active:scale-95" 
                   onClick={toggleMenu}
                 >
                   <Icon className="w-4 h-4" />
