@@ -16,13 +16,26 @@ type RequiredUserData = {
   updated_at?: string;
 };
 
+const validateUserData = (user: Partial<UserData>): user is RequiredUserData => {
+  if (!user.name?.trim()) {
+    throw new Error("Le nom est requis");
+  }
+  if (!user.phone?.trim()) {
+    throw new Error("Le numéro de téléphone est requis");
+  }
+  if (!user.role?.trim()) {
+    throw new Error("La fonction est requise");
+  }
+  return true;
+};
+
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (user: Partial<UserData>) => {
-      if (!user.name || !user.phone || !user.role) {
-        throw new Error("Missing required fields");
+      if (!validateUserData(user)) {
+        return;
       }
 
       const userData: RequiredUserData = {
@@ -38,11 +51,18 @@ export const useCreateUser = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating user:", error);
+        throw new Error("Erreur lors de la création de l'utilisateur");
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users });
+      toast.success("Utilisateur créé avec succès");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };
@@ -52,8 +72,8 @@ export const useUpdateUser = () => {
   
   return useMutation({
     mutationFn: async ({ id, ...user }: Partial<UserData> & { id: string }) => {
-      if (!user.name || !user.phone || !user.role) {
-        throw new Error("Missing required fields");
+      if (!validateUserData(user)) {
+        return;
       }
 
       const userData: RequiredUserData = {
@@ -70,11 +90,18 @@ export const useUpdateUser = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating user:", error);
+        throw new Error("Erreur lors de la modification de l'utilisateur");
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users });
+      toast.success("Utilisateur modifié avec succès");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };
@@ -89,10 +116,17 @@ export const useDeleteUser = () => {
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting user:", error);
+        throw new Error("Erreur lors de la suppression de l'utilisateur");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users });
+      toast.success("Utilisateur supprimé avec succès");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };
