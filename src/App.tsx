@@ -38,45 +38,47 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route
             element={
-              <ProtectedRoute requireAuth={false}>
+              <ProtectedRoute requireAuth={true}>
                 <Layout>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route
-                      path="/users"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin']}>
-                          <Users />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/synods"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin']}>
-                          <Synods />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/reports"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
-                          <Reports />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route path="/attendance" element={<Attendance />} />
-                    <Route
-                      path="/settings"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin']}>
-                          <Settings />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route
+                        path="/users"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin']}>
+                            <Users />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/synods"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin']}>
+                            <Synods />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/reports"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                            <Reports />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route path="/attendance" element={<Attendance />} />
+                      <Route
+                        path="/settings"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin']}>
+                            <Settings />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
