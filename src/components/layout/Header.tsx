@@ -89,27 +89,29 @@ export const Header = () => {
             </Link>
           </div>
           
-          <nav className={`${isMenuOpen ? 'block' : 'hidden'} lg:flex absolute lg:relative top-16 lg:top-0 left-0 right-0 bg-white lg:bg-transparent shadow-soft lg:shadow-none p-4 lg:p-0 space-y-4 lg:space-y-0 lg:items-center lg:space-x-8 border border-gray-200 lg:border-0`}>
-            {getAvailableLinks().map(({ to, icon: Icon, label }) => (
-              <Link 
-                key={to}
-                to={to} 
-                className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
-                onClick={toggleMenu}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{label}</span>
-              </Link>
-            ))}
-            
+          <div className="flex items-center space-x-4">
             <Button
               variant="outline"
               onClick={handleAccessClick}
-              className="w-full lg:w-auto text-white border-white/20 hover:bg-white/20"
+              className="text-white border-white/20 hover:bg-white/20"
             >
               {role === 'public' ? 'Accès administrateur' : 'Déconnexion'}
             </Button>
-          </nav>
+
+            <nav className={`${isMenuOpen ? 'block' : 'hidden'} lg:flex absolute lg:relative top-16 lg:top-0 left-0 right-0 bg-white lg:bg-transparent shadow-soft lg:shadow-none p-4 lg:p-0 space-y-4 lg:space-y-0 lg:items-center lg:space-x-8 border border-gray-200 lg:border-0`}>
+              {getAvailableLinks().map(({ to, icon: Icon, label }) => (
+                <Link 
+                  key={to}
+                  to={to} 
+                  className="nav-link flex items-center space-x-2 text-gray-700 lg:text-white/80 p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 lg:hover:bg-white/20 hover:text-primary lg:hover:text-white active:scale-95" 
+                  onClick={toggleMenu}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
       </div>
 
