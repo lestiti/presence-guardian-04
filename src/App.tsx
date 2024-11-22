@@ -24,7 +24,6 @@ const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 30, // 30 minutes (renamed from cacheTime)
       refetchOnWindowFocus: false,
       retry: 1,
-      suspense: true,
     },
   },
 });
