@@ -11,12 +11,7 @@ import { Error } from "./components/ui/error";
 
 // Lazy load pages
 const Index = lazy(() => import("./pages/Index"));
-const Users = lazy(() => 
-  import("./pages/Users")
-    .catch(() => ({
-      default: () => <Error message="Erreur lors du chargement de la page" />
-    }))
-);
+const Users = lazy(() => import("./pages/Users"));
 const Synods = lazy(() => import("./pages/Synods"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -27,7 +22,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (renamed from cacheTime)
+      gcTime: 1000 * 60 * 30, // 30 minutes
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -48,9 +43,7 @@ const App = () => (
                 path="/users"
                 element={
                   <ProtectedRoute>
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <Users />
-                    </Suspense>
+                    <Users />
                   </ProtectedRoute>
                 }
               />
