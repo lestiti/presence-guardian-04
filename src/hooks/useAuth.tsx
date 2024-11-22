@@ -43,7 +43,7 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -57,11 +57,9 @@ export const useAuth = () => {
         return;
       }
 
-      if (data?.user) {
-        navigate('/');
-        toast.success('Connexion réussie');
-      }
-    } catch (error: any) {
+      navigate('/');
+      toast.success('Connexion réussie');
+    } catch (error) {
       console.error('Login error:', error);
       toast.error('Une erreur inattendue est survenue');
     }
@@ -72,7 +70,7 @@ export const useAuth = () => {
       await supabase.auth.signOut();
       navigate('/login');
       toast.success('Déconnexion réussie');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Logout error:', error);
       toast.error('Erreur lors de la déconnexion');
     }
