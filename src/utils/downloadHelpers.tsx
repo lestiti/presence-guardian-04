@@ -3,9 +3,16 @@ import JSZip from "jszip";
 import QRCode from "react-qr-code";
 import ReactBarcode from "react-barcode";
 import { generateUniqueQRCode, generateUniqueBarcode } from "./codeGenerators";
+import { createElement } from 'react';
 import ReactDOMServer from "react-dom/server";
 
-export const generateImage = async (element: HTMLElement, options = {}): Promise<string> => {
+interface ImageOptions {
+  width?: number;
+  height?: number;
+  [key: string]: any;
+}
+
+export const generateImage = async (element: HTMLElement, options: ImageOptions = {}): Promise<string> => {
   const defaultOptions = {
     quality: 0.95,
     pixelRatio: 2,
@@ -49,26 +56,24 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
       document.body.appendChild(container);
     });
 
-    // Render QR code
-    qrContainer.innerHTML = ReactDOMServer.renderToString(
-      <QRCode
-        value={generateUniqueQRCode(userId)}
-        size={256}
-        level="H"
-        includeMargin={true}
-      />
-    );
+    // Render QR code using createElement instead of JSX
+    const qrElement = createElement(QRCode, {
+      value: generateUniqueQRCode(userId),
+      size: 256,
+      level: "H",
+      // Removed includeMargin as it's not a valid prop
+    });
+    qrContainer.innerHTML = ReactDOMServer.renderToString(qrElement);
 
-    // Render Barcode
-    barcodeContainer.innerHTML = ReactDOMServer.renderToString(
-      <ReactBarcode
-        value={generateUniqueBarcode(userId)}
-        height={100}
-        width={2}
-        displayValue={true}
-        background="#ffffff"
-      />
-    );
+    // Render Barcode using createElement instead of JSX
+    const barcodeElement = createElement(ReactBarcode, {
+      value: generateUniqueBarcode(userId),
+      height: 100,
+      width: 2,
+      displayValue: true,
+      background: "#ffffff"
+    });
+    barcodeContainer.innerHTML = ReactDOMServer.renderToString(barcodeElement);
 
     // Generate images
     const [qrImage, barcodeImage] = await Promise.all([
