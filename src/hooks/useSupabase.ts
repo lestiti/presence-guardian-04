@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { UserData, isValidUserRole } from "@/types/user";
 import { toast } from "sonner";
 
-// Optimized query keys
 const queryKeys = {
   synods: ['synods'] as const,
   users: ['users'] as const,
@@ -12,7 +11,6 @@ const queryKeys = {
   scans: (attendanceId?: string) => ['scans', attendanceId] as const,
 };
 
-// Enhanced realtime subscription setup
 const setupRealtimeSubscription = (
   table: string,
   queryClient: ReturnType<typeof useQueryClient>,
@@ -33,7 +31,6 @@ const setupRealtimeSubscription = (
   };
 };
 
-// Users with optimized realtime updates and error handling
 export const useUsers = () => {
   const queryClient = useQueryClient();
 
@@ -48,8 +45,7 @@ export const useUsers = () => {
         const { data, error } = await supabase
           .from("users")
           .select("*, synods(name, color)")
-          .order("name")
-          .throwOnError();
+          .order("name");
 
         if (error) {
           console.error("Error fetching users:", error);
@@ -61,7 +57,6 @@ export const useUsers = () => {
           return [];
         }
 
-        // Validate and transform the data
         return data
           .filter(user => user !== null)
           .map(user => {
@@ -79,12 +74,11 @@ export const useUsers = () => {
         return [];
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 1,
   });
 };
 
-// Re-export other hooks from their respective files
 export * from './useUserMutations';
 export * from './useAttendanceQueries';
 export * from './useScanQueries';

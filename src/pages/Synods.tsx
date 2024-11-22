@@ -16,9 +16,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useSynodStore } from "@/stores/synodStore";
+import { useEffect } from "react";
 
 const Synods = () => {
-  const { synods, setSynods } = useSynodStore();
+  const { synods, setSynods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
@@ -27,6 +28,10 @@ const Synods = () => {
     description: "",
     color: "#10B981",
   });
+
+  useEffect(() => {
+    fetchSynods();
+  }, [fetchSynods]);
 
   const handleNewSynod = () => {
     setSelectedSynod(null);
@@ -53,31 +58,33 @@ const Synods = () => {
     setShowDeleteDialog(true);
   };
 
-  const handleSaveSynod = () => {
-    if (selectedSynod) {
-      setSynods(synods.map(s => s.id === selectedSynod.id ? { ...selectedSynod, ...formData } : s));
-      toast.success("Le synode a été modifié avec succès");
-    } else {
-      const newSynod: Synod = {
-        ...formData,
-        id: (synods.length + 1).toString(),
-        memberCount: 0,
-      };
-      setSynods([...synods, newSynod]);
-      toast.success("Le nouveau synode a été créé avec succès");
+  const handleSaveSynod = async () => {
+    try {
+      if (selectedSynod) {
+        await updateSynod(selectedSynod.id, formData);
+      } else {
+        await addSynod(formData);
+      }
+      setShowDialog(false);
+      setSelectedSynod(null);
+      setFormData({ name: "", description: "", color: "#10B981" });
+    } catch (error) {
+      console.error('Error saving synod:', error);
+      toast.error("Erreur lors de la sauvegarde du synode");
     }
-    setShowDialog(false);
-    setSelectedSynod(null);
-    setFormData({ name: "", description: "", color: "#10B981" });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedSynod) {
-      setSynods(synods.filter(s => s.id !== selectedSynod.id));
-      toast.success("Le synode a été supprimé avec succès");
+      try {
+        await deleteSynod(selectedSynod.id);
+        setShowDeleteDialog(false);
+        setSelectedSynod(null);
+      } catch (error) {
+        console.error('Error deleting synod:', error);
+        toast.error("Erreur lors de la suppression du synode");
+      }
     }
-    setShowDeleteDialog(false);
-    setSelectedSynod(null);
   };
 
   return (
