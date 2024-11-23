@@ -32,6 +32,7 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       }
 
       set({ synods: data || [] });
+      toast.success("Synodes synchronisés avec succès");
     } catch (error) {
       console.error('Error in fetchSynods:', error);
       toast.error("Erreur lors de la synchronisation des synodes");
@@ -102,19 +103,19 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     const currentSynod = get().synods.find(s => s.id === synodId);
     if (!currentSynod) return;
 
-    const newCount = (currentSynod.memberCount || 0) + delta;
+    const newCount = (currentSynod.member_count || 0) + delta;
     
     try {
       const { error } = await supabase
         .from('synods')
-        .update({ memberCount: newCount })
+        .update({ member_count: newCount })
         .eq('id', synodId);
 
       if (error) throw error;
 
       set((state) => ({
         synods: state.synods.map(s => 
-          s.id === synodId ? { ...s, memberCount: newCount } : s
+          s.id === synodId ? { ...s, member_count: newCount } : s
         )
       }));
     } catch (error) {
