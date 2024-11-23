@@ -9,6 +9,7 @@ const queryKeys = {
   users: ['users'] as const,
   attendance: ['attendance'] as const,
   scans: (attendanceId?: string) => ['scans', attendanceId] as const,
+  accessCodes: ['accessCodes'] as const,
 };
 
 const setupRealtimeSubscription = (
@@ -20,8 +21,22 @@ const setupRealtimeSubscription = (
     .channel(`public:${table}`)
     .on('postgres_changes', 
       { event: '*', schema: 'public', table },
-      () => {
+      (payload) => {
         queryClient.invalidateQueries({ queryKey });
+        
+        // Show toast notifications for changes
+        const eventType = payload.eventType;
+        switch (eventType) {
+          case 'INSERT':
+            toast.success(`Nouveau ${table} ajouté`);
+            break;
+          case 'UPDATE':
+            toast.info(`${table} mis à jour`);
+            break;
+          case 'DELETE':
+            toast.warning(`${table} supprimé`);
+            break;
+        }
       }
     )
     .subscribe();
