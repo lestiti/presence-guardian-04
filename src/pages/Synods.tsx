@@ -3,7 +3,9 @@ import { Grid, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SynodForm } from "@/components/synods/SynodForm";
-import { Synod, SynodFormData } from "@/types/synod";
+import { Synod } from "@/types/synod";
+import { AccessCodeDialog } from "@/components/access/AccessCodeDialog";
+import { useAccess } from "@/hooks/useAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,49 +18,34 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useSynodStore } from "@/stores/synodStore";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const Synods = () => {
   const navigate = useNavigate();
-  const { synods, setSynods, fetchSynods, addSynod, updateSynod, deleteSynod, setupRealtimeSubscription } = useSynodStore();
+  const { role } = useAccess();
+  const { synods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showAccessDialog, setShowAccessDialog] = useState(false);
   const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
-  const [formData, setFormData] = useState<SynodFormData>({
+  const [formData, setFormData] = useState({
     name: "",
     description: "",
     color: "#10B981",
   });
 
   useEffect(() => {
-    // Check authentication
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-    };
-    checkAuth();
-
-    // Setup auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate("/auth");
-      }
-    });
-
+    if (role === 'public') {
+      setShowAccessDialog(true);
+    }
     fetchSynods();
-    const cleanup = setupRealtimeSubscription();
-    
-    return () => {
-      cleanup();
-      subscription.unsubscribe();
-    };
-  }, [fetchSynods, setupRealtimeSubscription, navigate]);
+  }, [role, fetchSynods]);
 
   const handleNewSynod = () => {
+    if (role !== 'super_admin') {
+      toast.error("Accès non autorisé");
+      return;
+    }
     setSelectedSynod(null);
     setFormData({
       name: "",
@@ -69,6 +56,10 @@ const Synods = () => {
   };
 
   const handleEditSynod = (synod: Synod) => {
+    if (role !== 'super_admin') {
+      toast.error("Accès non autorisé");
+      return;
+    }
     setSelectedSynod(synod);
     setFormData({
       name: synod.name,
@@ -79,11 +70,19 @@ const Synods = () => {
   };
 
   const handleDeleteSynod = (synod: Synod) => {
+    if (role !== 'super_admin') {
+      toast.error("Accès non autorisé");
+      return;
+    }
     setSelectedSynod(synod);
     setShowDeleteDialog(true);
   };
 
   const handleSaveSynod = async () => {
+    if (role !== 'super_admin') {
+      toast.error("Accès non autorisé");
+      return;
+    }
     try {
       if (selectedSynod) {
         await updateSynod(selectedSynod.id, formData);
@@ -100,6 +99,10 @@ const Synods = () => {
   };
 
   const handleConfirmDelete = async () => {
+    if (role !== 'super_admin') {
+      toast.error("Accès non autorisé");
+      return;
+    }
     if (selectedSynod) {
       try {
         await deleteSynod(selectedSynod.id);
@@ -116,18 +119,13 @@ const Synods = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-secondary">Gestion des Synodes</h1>
-        <div className="flex gap-4">
-          <Button 
-            variant="outline" 
-            onClick={() => supabase.auth.signOut()}
-          >
-            Déconnexion
-          </Button>
-          <Button className="bg-primary hover:bg-primary/90 transition-colors" onClick={handleNewSynod}>
-            <Grid className="w-4 h-4 mr-2" />
-            Nouveau Synode
-          </Button>
-        </div>
+        <Button 
+          className="bg-primary hover:bg-primary/90 transition-colors" 
+          onClick={handleNewSynod}
+        >
+          <Grid className="w-4 h-4 mr-2" />
+          Nouveau Synode
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -204,6 +202,11 @@ const Synods = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AccessCodeDialog
+        open={showAccessDialog}
+        onClose={() => setShowAccessDialog(false)}
+      />
     </div>
   );
 };

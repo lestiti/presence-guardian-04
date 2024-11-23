@@ -7,20 +7,21 @@ import Synods from "@/pages/Synods";
 import Attendance from "@/pages/Attendance";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
-import AuthPage from "@/pages/Auth";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/auth" element={<AuthPage />} />
-        <Route element={<Layout />}>
-          <Route path="/" element={<Index />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/synods" element={<Synods />} />
-          <Route path="/attendance" element={<Attendance />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
+        <Route element={<Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/synods" element={<Synods />} />
+            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </Layout>}>
         </Route>
       </Routes>
       <Toaster />
