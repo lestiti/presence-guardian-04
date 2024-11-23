@@ -29,18 +29,25 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       if (error) {
         console.error('Error fetching synods:', error);
         toast.error("Erreur lors du chargement des synodes");
-        return;
+        throw error;
       }
 
       set({ synods: data || [] });
     } catch (error) {
       console.error('Error in fetchSynods:', error);
       toast.error("Erreur lors de la synchronisation des synodes");
+      throw error;
     }
   },
 
   addSynod: async (synod) => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        toast.error("Vous devez être connecté pour effectuer cette action");
+        throw new Error("Authentication required");
+      }
+
       const { data, error } = await supabase
         .from('synods')
         .insert([synod])
@@ -62,6 +69,12 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
 
   updateSynod: async (id, synod) => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        toast.error("Vous devez être connecté pour effectuer cette action");
+        throw new Error("Authentication required");
+      }
+
       const { error } = await supabase
         .from('synods')
         .update(synod)
@@ -84,6 +97,12 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
 
   deleteSynod: async (id) => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        toast.error("Vous devez être connecté pour effectuer cette action");
+        throw new Error("Authentication required");
+      }
+
       const { error } = await supabase
         .from('synods')
         .delete()
@@ -109,6 +128,12 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     const newCount = (currentSynod.member_count || 0) + delta;
     
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        toast.error("Vous devez être connecté pour effectuer cette action");
+        throw new Error("Authentication required");
+      }
+
       const { error } = await supabase
         .from('synods')
         .update({ member_count: newCount })
@@ -129,7 +154,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
   },
 
   setupRealtimeSubscription: () => {
-    // Subscribe to realtime changes
     const channel = supabase
       .channel('synods_changes')
       .on('postgres_changes', 
@@ -139,13 +163,18 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
           table: 'synods' 
         }, 
         () => {
-          // Refresh the synods data when changes occur
           get().fetchSynods();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Realtime subscription active for synods');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Error in synods subscription');
+          toast.error("Erreur de synchronisation des synodes");
+        }
+      });
 
-    // Return cleanup function
     return () => {
       channel.unsubscribe();
     };
