@@ -3,7 +3,7 @@ import { Grid, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SynodForm } from "@/components/synods/SynodForm";
-import { Synod } from "@/types/synod";
+import { Synod, SynodFormData } from "@/types/synod";
 import { AccessCodeDialog } from "@/components/access/AccessCodeDialog";
 import { useAccess } from "@/hooks/useAccess";
 import {
@@ -28,7 +28,7 @@ const Synods = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
   const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SynodFormData>({
     name: "",
     description: "",
     color: "#10B981",
