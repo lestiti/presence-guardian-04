@@ -131,7 +131,7 @@ const Synods = () => {
               <p className="text-secondary/60 mb-2">{synod.description}</p>
             )}
             <p className="text-lg text-secondary/80 font-medium">
-              {synod.memberCount} membres
+              {synod.member_count} membres
             </p>
           </div>
         ))}

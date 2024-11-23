@@ -79,7 +79,7 @@ const Index = () => {
         <StatCard
           icon={Users}
           title="Utilisateurs"
-          value={`${synods.reduce((acc, synod) => acc + (synod.memberCount || 0), 0)}`}
+          value={`${synods.reduce((acc, synod) => acc + (synod.member_count || 0), 0)}`}
           trend={`${synods.length} synodes actifs`}
         />
         <StatCard
@@ -136,7 +136,7 @@ const Index = () => {
                 </div>
                 <div>
                   <p className="font-medium text-white">{synod.name}</p>
-                  <p className="text-sm text-white/60">{synod.memberCount || 0} membres</p>
+                  <p className="text-sm text-white/60">{synod.member_count || 0} membres</p>
                 </div>
               </div>
             ))}
