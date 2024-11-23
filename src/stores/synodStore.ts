@@ -7,7 +7,7 @@ interface SynodStore {
   synods: Synod[];
   setSynods: (synods: Synod[]) => void;
   fetchSynods: () => Promise<void>;
-  addSynod: (synod: Omit<Synod, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  addSynod: (synod: Omit<Synod, 'id' | 'created_at' | 'updated_at' | 'member_count'>) => Promise<void>;
   updateSynod: (id: string, synod: Partial<Synod>) => Promise<void>;
   deleteSynod: (id: string) => Promise<void>;
   updateMemberCount: (synodId: string, delta: number) => Promise<void>;
@@ -56,6 +56,7 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     } catch (error) {
       console.error('Error adding synod:', error);
       toast.error("Erreur lors de la création du synode");
+      throw error;
     }
   },
 
@@ -77,6 +78,7 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     } catch (error) {
       console.error('Error updating synod:', error);
       toast.error("Erreur lors de la mise à jour du synode");
+      throw error;
     }
   },
 
@@ -96,6 +98,7 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     } catch (error) {
       console.error('Error deleting synod:', error);
       toast.error("Erreur lors de la suppression du synode");
+      throw error;
     }
   },
 
@@ -121,6 +124,7 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     } catch (error) {
       console.error('Error updating member count:', error);
       toast.error("Erreur lors de la mise à jour du nombre de membres");
+      throw error;
     }
   },
 
@@ -134,24 +138,9 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
           schema: 'public', 
           table: 'synods' 
         }, 
-        (payload) => {
-          const { eventType } = payload;
-          
+        () => {
           // Refresh the synods data when changes occur
           get().fetchSynods();
-          
-          // Show appropriate notification
-          switch (eventType) {
-            case 'INSERT':
-              toast.success('Nouveau synode ajouté');
-              break;
-            case 'UPDATE':
-              toast.success('Synode mis à jour');
-              break;
-            case 'DELETE':
-              toast.success('Synode supprimé');
-              break;
-          }
         }
       )
       .subscribe();
