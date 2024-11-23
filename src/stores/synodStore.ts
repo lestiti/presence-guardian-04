@@ -11,6 +11,7 @@ interface SynodStore {
   updateSynod: (id: string, synod: Partial<Synod>) => Promise<void>;
   deleteSynod: (id: string) => Promise<void>;
   updateMemberCount: (synodId: string, delta: number) => Promise<void>;
+  setupRealtimeSubscription: () => () => void;
 }
 
 export const useSynodStore = create<SynodStore>((set, get) => ({
@@ -32,7 +33,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       }
 
       set({ synods: data || [] });
-      toast.success("Synodes synchronisés avec succès");
     } catch (error) {
       console.error('Error in fetchSynods:', error);
       toast.error("Erreur lors de la synchronisation des synodes");
@@ -122,5 +122,43 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       console.error('Error updating member count:', error);
       toast.error("Erreur lors de la mise à jour du nombre de membres");
     }
+  },
+
+  setupRealtimeSubscription: () => {
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('synods_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'synods' 
+        }, 
+        (payload) => {
+          const { eventType } = payload;
+          
+          // Refresh the synods data when changes occur
+          get().fetchSynods();
+          
+          // Show appropriate notification
+          switch (eventType) {
+            case 'INSERT':
+              toast.success('Nouveau synode ajouté');
+              break;
+            case 'UPDATE':
+              toast.success('Synode mis à jour');
+              break;
+            case 'DELETE':
+              toast.success('Synode supprimé');
+              break;
+          }
+        }
+      )
+      .subscribe();
+
+    // Return cleanup function
+    return () => {
+      channel.unsubscribe();
+    };
   },
 }));

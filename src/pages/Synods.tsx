@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Grid, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,10 +16,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useSynodStore } from "@/stores/synodStore";
-import { useEffect } from "react";
 
 const Synods = () => {
-  const { synods, setSynods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
+  const { synods, setSynods, fetchSynods, addSynod, updateSynod, deleteSynod, setupRealtimeSubscription } = useSynodStore();
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
@@ -31,7 +30,15 @@ const Synods = () => {
 
   useEffect(() => {
     fetchSynods();
-  }, [fetchSynods]);
+    
+    // Setup realtime subscription
+    const cleanup = setupRealtimeSubscription();
+    
+    // Cleanup subscription when component unmounts
+    return () => {
+      cleanup();
+    };
+  }, [fetchSynods, setupRealtimeSubscription]);
 
   const handleNewSynod = () => {
     setSelectedSynod(null);
