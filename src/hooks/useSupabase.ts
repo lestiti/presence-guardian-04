@@ -39,9 +39,17 @@ const setupRealtimeSubscription = (
         }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log(`Realtime subscription active for ${table}`);
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error(`Error in realtime subscription for ${table}`);
+        toast.error(`Erreur de connexion pour ${table}`);
+      }
+    });
 
   return () => {
+    console.log(`Cleaning up realtime subscription for ${table}`);
     channel.unsubscribe();
   };
 };
@@ -50,7 +58,10 @@ export const useUsers = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return setupRealtimeSubscription('users', queryClient, queryKeys.users);
+    const cleanup = setupRealtimeSubscription('users', queryClient, queryKeys.users);
+    return () => {
+      cleanup();
+    };
   }, [queryClient]);
 
   return useQuery({
@@ -65,7 +76,7 @@ export const useUsers = () => {
         if (error) {
           console.error("Error fetching users:", error);
           toast.error("Erreur lors du chargement des utilisateurs");
-          return [];
+          throw error;
         }
 
         if (!data) {
@@ -86,11 +97,12 @@ export const useUsers = () => {
       } catch (error) {
         console.error("Error in useUsers query:", error);
         toast.error("Erreur lors du chargement des utilisateurs");
-        return [];
+        throw error;
       }
     },
     staleTime: 1000 * 60 * 5,
-    retry: 1,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 

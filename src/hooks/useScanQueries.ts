@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 const queryKeys = {
   scans: (attendanceId?: string) => ['scans', attendanceId] as const,
@@ -8,17 +9,41 @@ const queryKeys = {
 
 const setupRealtimeSubscription = (
   queryClient: ReturnType<typeof useQueryClient>,
-  queryKey: readonly unknown[]
+  queryKey: readonly unknown[],
+  attendanceId?: string
 ) => {
   const channel = supabase
-    .channel(`public:scans`)
+    .channel(`public:scans:${attendanceId || 'all'}`)
     .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'scans' },
-      () => {
+      { 
+        event: '*', 
+        schema: 'public', 
+        table: 'scans',
+        filter: attendanceId ? `attendance_id=eq.${attendanceId}` : undefined
+      },
+      (payload) => {
         queryClient.invalidateQueries({ queryKey });
+        
+        const eventType = payload.eventType;
+        switch (eventType) {
+          case 'INSERT':
+            toast.success("Nouveau scan enregistré");
+            break;
+          case 'UPDATE':
+            toast.info("Scan mis à jour");
+            break;
+          case 'DELETE':
+            toast.warning("Scan supprimé");
+            break;
+        }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') {
+        console.error("Error in scans subscription");
+        toast.error("Erreur de synchronisation des scans");
+      }
+    });
 
   return () => {
     channel.unsubscribe();
@@ -30,38 +55,60 @@ export const useScans = (attendanceId?: string) => {
 
   useEffect(() => {
     if (!attendanceId) return;
-    return setupRealtimeSubscription(queryClient, queryKeys.scans(attendanceId));
+    
+    const cleanup = setupRealtimeSubscription(
+      queryClient, 
+      queryKeys.scans(attendanceId),
+      attendanceId
+    );
+    
+    return () => {
+      cleanup();
+    };
   }, [queryClient, attendanceId]);
 
   return useQuery({
     queryKey: queryKeys.scans(attendanceId),
     queryFn: async () => {
-      let query = supabase
-        .from("scans")
-        .select(`
-          *,
-          users (
-            name,
-            phone,
-            role,
-            synods (
+      try {
+        let query = supabase
+          .from("scans")
+          .select(`
+            *,
+            users (
               name,
-              color
+              phone,
+              role,
+              synods (
+                name,
+                color
+              )
             )
-          )
-        `)
-        .order("timestamp", { ascending: false });
+          `)
+          .order("timestamp", { ascending: false });
 
-      if (attendanceId) {
-        query = query.eq("attendance_id", attendanceId);
+        if (attendanceId) {
+          query = query.eq("attendance_id", attendanceId);
+        }
+
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error("Error fetching scans:", error);
+          toast.error("Erreur lors du chargement des scans");
+          throw error;
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error("Error in scans query:", error);
+        toast.error("Erreur lors du chargement des scans");
+        throw error;
       }
-
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return data;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: !!attendanceId,
   });
 };
