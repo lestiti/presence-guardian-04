@@ -8,11 +8,12 @@ import { toast } from "sonner";
 import { useSynodStore } from "@/stores/synodStore";
 import { SynodCard } from "@/components/synods/SynodCard";
 import { SynodDialogs } from "@/components/synods/SynodDialogs";
-import { supabase } from "@/integrations/supabase/client";
+import { SynodsHeader } from "@/components/synods/SynodsHeader";
+import { SynodsList } from "@/components/synods/SynodsList";
 
 const Synods = () => {
   const { role } = useAccess();
-  const { synods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
+  const { synods, fetchSynods } = useSynodStore();
   const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -25,7 +26,7 @@ const Synods = () => {
   });
 
   useEffect(() => {
-    const loadSynods = async () => {
+    const loadData = async () => {
       try {
         await fetchSynods();
       } catch (error) {
@@ -36,127 +37,12 @@ const Synods = () => {
       }
     };
 
-    const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        setShowAccessDialog(true);
-      }
-    };
-
     if (role === 'public') {
-      checkSession();
+      setShowAccessDialog(true);
+    } else {
+      loadData();
     }
-    loadSynods();
   }, [role, fetchSynods]);
-
-  const handleNewSynod = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast.error("Vous devez être connecté pour créer un synode");
-      setShowAccessDialog(true);
-      return;
-    }
-
-    if (role !== 'super_admin') {
-      toast.error("Accès non autorisé");
-      return;
-    }
-    setSelectedSynod(null);
-    setFormData({
-      name: "",
-      description: "",
-      color: "#10B981",
-    });
-    setShowDialog(true);
-  };
-
-  const handleEditSynod = async (synod: Synod) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast.error("Vous devez être connecté pour modifier un synode");
-      setShowAccessDialog(true);
-      return;
-    }
-
-    if (role !== 'super_admin') {
-      toast.error("Accès non autorisé");
-      return;
-    }
-    setSelectedSynod(synod);
-    setFormData({
-      name: synod.name,
-      description: synod.description || "",
-      color: synod.color,
-    });
-    setShowDialog(true);
-  };
-
-  const handleDeleteSynod = async (synod: Synod) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast.error("Vous devez être connecté pour supprimer un synode");
-      setShowAccessDialog(true);
-      return;
-    }
-
-    if (role !== 'super_admin') {
-      toast.error("Accès non autorisé");
-      return;
-    }
-    setSelectedSynod(synod);
-    setShowDeleteDialog(true);
-  };
-
-  const handleSaveSynod = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast.error("Vous devez être connecté pour cette action");
-      setShowAccessDialog(true);
-      return;
-    }
-
-    if (role !== 'super_admin') {
-      toast.error("Accès non autorisé");
-      return;
-    }
-
-    try {
-      if (selectedSynod) {
-        await updateSynod(selectedSynod.id, formData);
-      } else {
-        await addSynod(formData);
-      }
-      setShowDialog(false);
-      setSelectedSynod(null);
-      setFormData({ name: "", description: "", color: "#10B981" });
-    } catch (error) {
-      console.error('Error saving synod:', error);
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la sauvegarde du synode";
-      toast.error(errorMessage);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast.error("Vous devez être connecté pour cette action");
-      setShowAccessDialog(true);
-      return;
-    }
-
-    if (role !== 'super_admin' || !selectedSynod) {
-      toast.error("Accès non autorisé");
-      return;
-    }
-    try {
-      await deleteSynod(selectedSynod.id);
-      setShowDeleteDialog(false);
-      setSelectedSynod(null);
-    } catch (error) {
-      console.error('Error deleting synod:', error);
-      toast.error("Erreur lors de la suppression du synode");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -168,27 +54,27 @@ const Synods = () => {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-secondary">Gestion des Synodes</h1>
-        <Button 
-          className="bg-primary hover:bg-primary/90 transition-colors" 
-          onClick={handleNewSynod}
-        >
-          <Grid className="w-4 h-4 mr-2" />
-          Nouveau Synode
-        </Button>
-      </div>
+      <SynodsHeader 
+        role={role}
+        setShowDialog={setShowDialog}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {synods.map((synod) => (
-          <SynodCard
-            key={synod.id}
-            synod={synod}
-            onEdit={handleEditSynod}
-            onDelete={handleDeleteSynod}
-          />
-        ))}
-      </div>
+      <SynodsList 
+        synods={synods}
+        onEdit={(synod) => {
+          setSelectedSynod(synod);
+          setFormData({
+            name: synod.name,
+            description: synod.description || "",
+            color: synod.color,
+          });
+          setShowDialog(true);
+        }}
+        onDelete={(synod) => {
+          setSelectedSynod(synod);
+          setShowDeleteDialog(true);
+        }}
+      />
 
       <SynodDialogs
         showDialog={showDialog}
@@ -198,8 +84,6 @@ const Synods = () => {
         selectedSynod={selectedSynod}
         formData={formData}
         setFormData={setFormData}
-        onSave={handleSaveSynod}
-        onDelete={handleConfirmDelete}
       />
 
       <AccessCodeDialog
