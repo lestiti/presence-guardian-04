@@ -7,7 +7,7 @@ import { useSynodStore } from "@/stores/synodStore";
 import { SynodDialogs } from "@/components/synods/SynodDialogs";
 import { SynodsHeader } from "@/components/synods/SynodsHeader";
 import { SynodsList } from "@/components/synods/SynodsList";
-import { Synod, SynodFormData } from "@/types/synod";
+import { Synod } from "@/types/synod";
 
 const Synods = () => {
   const { role, accessCode } = useAccess();
@@ -17,7 +17,7 @@ const Synods = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
   const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
-  const [formData, setFormData] = useState<SynodFormData>({
+  const [initialFormData, setInitialFormData] = useState({
     name: "",
     color: "#10B981",
     description: ""
@@ -44,7 +44,7 @@ const Synods = () => {
     loadData();
   }, [role, accessCode, fetchSynods]);
 
-  const handleSave = async () => {
+  const handleSave = async (formData: { name: string; description?: string; color: string }) => {
     try {
       if (role !== 'super_admin') {
         toast.error("Vous devez être super admin pour effectuer cette action");
@@ -58,7 +58,7 @@ const Synods = () => {
       }
       setShowDialog(false);
       setSelectedSynod(null);
-      setFormData({
+      setInitialFormData({
         name: "",
         color: "#10B981",
         description: ""
@@ -106,7 +106,7 @@ const Synods = () => {
         synods={synods}
         onEdit={(synod) => {
           setSelectedSynod(synod);
-          setFormData({
+          setInitialFormData({
             name: synod.name,
             description: synod.description || "",
             color: synod.color,
@@ -125,8 +125,7 @@ const Synods = () => {
         showDeleteDialog={showDeleteDialog}
         setShowDeleteDialog={setShowDeleteDialog}
         selectedSynod={selectedSynod}
-        formData={formData}
-        setFormData={setFormData}
+        initialFormData={initialFormData}
         onSave={handleSave}
         onDelete={handleDelete}
       />

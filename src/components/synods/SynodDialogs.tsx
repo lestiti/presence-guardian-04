@@ -1,4 +1,4 @@
-import { Synod, SynodFormData } from "@/types/synod";
+import { Synod } from "@/types/synod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SynodForm } from "@/components/synods/SynodForm";
 import {
@@ -18,9 +18,12 @@ interface SynodDialogsProps {
   showDeleteDialog: boolean;
   setShowDeleteDialog: (show: boolean) => void;
   selectedSynod: Synod | null;
-  formData: SynodFormData;
-  setFormData: React.Dispatch<React.SetStateAction<SynodFormData>>;
-  onSave: () => Promise<void>;
+  initialFormData: {
+    name: string;
+    description?: string;
+    color: string;
+  };
+  onSave: (data: { name: string; description?: string; color: string }) => Promise<void>;
   onDelete: () => Promise<void>;
 }
 
@@ -30,8 +33,7 @@ export const SynodDialogs = ({
   showDeleteDialog,
   setShowDeleteDialog,
   selectedSynod,
-  formData,
-  setFormData,
+  initialFormData,
   onSave,
   onDelete,
 }: SynodDialogsProps) => {
@@ -45,8 +47,7 @@ export const SynodDialogs = ({
             </DialogTitle>
           </DialogHeader>
           <SynodForm
-            formData={formData}
-            setFormData={setFormData}
+            initialData={initialFormData}
             onSave={onSave}
             onCancel={() => setShowDialog(false)}
             isEdit={!!selectedSynod}

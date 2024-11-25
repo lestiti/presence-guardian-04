@@ -3,38 +3,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
-import { SynodFormData } from "@/types/synod";
 import { toast } from "sonner";
 
 interface SynodFormProps {
-  formData: SynodFormData;
-  setFormData: React.Dispatch<React.SetStateAction<SynodFormData>>;
-  onSave: () => Promise<void>;
+  initialData: {
+    name: string;
+    description?: string;
+    color: string;
+  };
+  onSave: (data: { name: string; description?: string; color: string }) => Promise<void>;
   onCancel: () => void;
   isEdit: boolean;
 }
 
-export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: SynodFormProps) => {
+export const SynodForm = ({ initialData, onSave, onCancel, isEdit }: SynodFormProps) => {
+  const [formState, setFormState] = useState(initialData);
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    return () => {
-      setHasChanges(false);
-      setErrors({});
-    };
-  }, []);
+    setFormState(initialData);
+    setHasChanges(false);
+    setErrors({});
+  }, [initialData]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.name?.trim()) {
+    if (!formState.name?.trim()) {
       newErrors.name = "Le nom du synode est requis";
     }
 
     const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    if (!hexColorRegex.test(formData.color)) {
+    if (!hexColorRegex.test(formState.color)) {
       newErrors.color = "La couleur doit être au format hexadécimal (ex: #FF0000)";
     }
 
@@ -52,7 +54,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
 
     try {
       setIsSubmitting(true);
-      await onSave();
+      await onSave(formState);
       setHasChanges(false);
       toast.success(isEdit ? "Synode modifié avec succès" : "Synode créé avec succès");
     } catch (error) {
@@ -63,8 +65,8 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
     }
   };
 
-  const updateFormData = (updates: Partial<SynodFormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+  const updateField = (field: keyof typeof formState, value: string) => {
+    setFormState(prev => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
 
@@ -75,8 +77,8 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
           <Label htmlFor="name">Nom du synode</Label>
           <Input
             id="name"
-            value={formData.name}
-            onChange={(e) => updateFormData({ name: e.target.value })}
+            value={formState.name}
+            onChange={(e) => updateField('name', e.target.value)}
             className={errors.name ? "border-red-500" : ""}
             disabled={isSubmitting}
           />
@@ -88,8 +90,8 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
           <Label htmlFor="description">Description</Label>
           <Input
             id="description"
-            value={formData.description || ""}
-            onChange={(e) => updateFormData({ description: e.target.value })}
+            value={formState.description || ""}
+            onChange={(e) => updateField('description', e.target.value)}
             disabled={isSubmitting}
           />
         </div>
@@ -100,17 +102,17 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
               id="color"
               type="text"
               placeholder="#000000"
-              value={formData.color}
+              value={formState.color}
               onChange={(e) => {
                 const value = e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`;
-                updateFormData({ color: value });
+                updateField('color', value);
               }}
               className={`font-mono ${errors.color ? "border-red-500" : ""}`}
               disabled={isSubmitting}
             />
             <div 
               className="w-10 h-10 rounded border"
-              style={{ backgroundColor: formData.color }}
+              style={{ backgroundColor: formState.color }}
               aria-label="Aperçu de la couleur"
             />
           </div>
