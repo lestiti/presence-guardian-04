@@ -1,7 +1,10 @@
-import { UserData } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DialogFooter } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { isValidMadagascarPhone } from "@/utils/phoneValidation";
 import { SynodSelect } from "./SynodSelect";
 import {
   Select,
@@ -10,12 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
-import { isValidMadagascarPhone } from "@/utils/phoneValidation";
-import { toast } from "sonner";
+import { UserData } from "@/types/user";
 
 interface UserFormProps {
   formData: Partial<UserData>;
@@ -28,6 +26,7 @@ interface UserFormProps {
 export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: UserFormProps) => {
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -51,7 +50,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
     if (!formData.phone?.trim()) {
       newErrors.phone = "Le numéro de téléphone est requis";
     } else if (!isValidMadagascarPhone(formData.phone)) {
-      newErrors.phone = "Le numéro de téléphone n'est pas valide";
+      newErrors.phone = "Le numéro de téléphone doit contenir au moins 8 chiffres";
     }
 
     if (!formData.role) {
@@ -67,7 +66,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const phoneValue = e.target.value.replace(/[^0-9+]/g, '');
+    const phoneValue = e.target.value;
     setFormData({ ...formData, phone: phoneValue });
     setHasChanges(true);
     if (errors.phone) {
@@ -83,9 +82,17 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
       return;
     }
 
-    onSave();
-    setHasChanges(false);
-    setErrors({});
+    setIsSubmitting(true);
+    try {
+      onSave();
+      setHasChanges(false);
+      setErrors({});
+    } catch (error) {
+      console.error("Error saving user:", error);
+      toast.error("Une erreur est survenue lors de la sauvegarde");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -106,6 +113,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
               }
             }}
             className={errors.name ? "border-destructive" : ""}
+            disabled={isSubmitting}
           />
           {errors.name && (
             <p className="text-sm text-destructive">{errors.name}</p>
@@ -121,8 +129,9 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
             type="tel"
             value={formData.phone || ""}
             onChange={handlePhoneChange}
-            placeholder="+261 34 00 000 00"
+            placeholder="Numéro de téléphone"
             className={errors.phone ? "border-destructive" : ""}
+            disabled={isSubmitting}
           />
           {errors.phone && (
             <p className="text-sm text-destructive">{errors.phone}</p>
@@ -179,11 +188,20 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
         </div>
       </div>
       <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>
+        <Button 
+          variant="outline" 
+          onClick={onCancel}
+          type="button"
+          disabled={isSubmitting}
+        >
           Annuler
         </Button>
-        <Button onClick={handleSubmit} disabled={!hasChanges}>
-          {isEdit ? "Modifier" : "Créer"}
+        <Button 
+          onClick={handleSubmit}
+          type="submit"
+          disabled={!hasChanges || isSubmitting}
+        >
+          {isSubmitting ? "Enregistrement..." : isEdit ? "Modifier" : "Créer"}
         </Button>
       </DialogFooter>
     </div>
