@@ -10,7 +10,10 @@ interface ScannerUIProps {
 }
 
 export const ScannerUI = ({ selectedDevice, isScanning, showSuccess, onResult }: ScannerUIProps) => {
-  if (!selectedDevice) return null;
+  if (!selectedDevice) {
+    console.log("No camera device selected");
+    return null;
+  }
 
   return (
     <div className="relative aspect-square overflow-hidden rounded-lg">
@@ -23,6 +26,7 @@ export const ScannerUI = ({ selectedDevice, isScanning, showSuccess, onResult }:
           }}
           onResult={(result, error) => {
             if (result?.getText()) {
+              console.log("QR code successfully scanned");
               onResult(result);
             } else if (error && !(error instanceof DOMException)) {
               // Ne pas afficher les erreurs DOMException qui sont normales pendant le scan
@@ -36,19 +40,27 @@ export const ScannerUI = ({ selectedDevice, isScanning, showSuccess, onResult }:
           videoStyle={{ objectFit: 'cover' }}
         />
       )}
+      
+      {/* Scanning frame indicator */}
       <div className={`absolute inset-0 pointer-events-none border-4 ${
         isScanning ? 'border-primary animate-pulse' : 'border-gray-300'
       } rounded-lg`} />
+      
+      {/* Success overlay */}
       {showSuccess && (
         <div className="absolute inset-0 flex items-center justify-center bg-green-500/20 backdrop-blur-sm">
           <CheckCircle2 className="w-24 h-24 text-green-500 animate-in zoom-in duration-300" />
         </div>
       )}
+      
+      {/* Active scanning indicator */}
       {isScanning && (
         <div className="absolute top-2 right-2">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
         </div>
       )}
+      
+      {/* Instructions overlay */}
       <div className="absolute inset-x-0 bottom-0 p-4 bg-black/50 text-white text-center text-sm">
         Placez le code dans le cadre
       </div>

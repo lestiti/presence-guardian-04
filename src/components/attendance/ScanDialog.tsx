@@ -34,30 +34,38 @@ export const ScanDialog = ({
     existingScans
   });
 
+  // Reset scanning state when dialog opens/closes
   useEffect(() => {
     if (open) {
       setIsScanning(true);
+      console.log("Dialog opened, scanning started");
     } else {
       setIsScanning(false);
+      console.log("Dialog closed, scanning stopped");
     }
   }, [open]);
 
+  // Show instructions when scanning starts
   useEffect(() => {
     if (open && isScanning) {
-      toast.info(
-        scanType === "QR" 
-          ? "Placez un QR code devant la caméra" 
-          : "Utilisez un scanner de code-barres"
-      );
+      const message = scanType === "QR" 
+        ? "Placez un QR code devant la caméra" 
+        : "Utilisez un scanner de code-barres";
+      toast.info(message);
+      console.log(`Scanning instructions shown: ${message}`);
     }
   }, [open, isScanning, scanType]);
 
   const handleQRResult = async (result: any) => {
-    if (!isScanning || processingCode) return;
+    if (!isScanning || processingCode) {
+      console.log("Scan ignored - scanning disabled or processing in progress");
+      return;
+    }
     
     if (result) {
       const decodedText = result.getText();
       if (decodedText) {
+        console.log("QR code detected:", decodedText);
         await handleSuccessfulScan(decodedText, "QR");
       }
     }
@@ -70,7 +78,10 @@ export const ScanDialog = ({
     const SCANNER_TIMEOUT = 50;
 
     const handleKeyPress = async (event: KeyboardEvent) => {
-      if (!isScanning || processingCode) return;
+      if (!isScanning || processingCode) {
+        console.log("Barcode scan ignored - scanning disabled or processing in progress");
+        return;
+      }
 
       const currentTime = Date.now();
       if (currentTime - lastKeyTime > SCANNER_TIMEOUT) {
@@ -79,6 +90,7 @@ export const ScanDialog = ({
       lastKeyTime = currentTime;
 
       if (event.key === "Enter" && currentCode) {
+        console.log("Barcode detected:", currentCode);
         await handleSuccessfulScan(currentCode, "BARCODE");
         currentCode = "";
         return;
@@ -89,10 +101,12 @@ export const ScanDialog = ({
 
     if (isScanning) {
       window.addEventListener("keypress", handleKeyPress);
+      console.log("Barcode scanner listener activated");
     }
 
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
+      console.log("Barcode scanner listener deactivated");
     };
   }, [isScanning, handleSuccessfulScan, processingCode]);
 
@@ -109,7 +123,10 @@ export const ScanDialog = ({
         <div className="space-y-4">
           <ScanControls 
             scanType={scanType}
-            onScanTypeChange={setScanType}
+            onScanTypeChange={(type) => {
+              setScanType(type);
+              console.log("Scan type changed to:", type);
+            }}
           />
 
           {scanType === "QR" && (

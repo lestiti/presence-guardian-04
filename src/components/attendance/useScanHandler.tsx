@@ -19,10 +19,13 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
   const [playError] = useSound("/sounds/error.mp3", { volume: 0.25 });
 
   const handleSuccessfulScan = async (code: string, type: ScanType) => {
-    if (processingCode) return;
+    if (processingCode) {
+      console.log("Scan ignored - already processing a code");
+      return;
+    }
     
     setProcessingCode(true);
-    console.log("Code scanné:", code, "Type:", type);
+    console.log("Processing scan:", { code, type, direction });
     
     try {
       const newScan: Omit<ScanRecord, "id"> = {
@@ -34,9 +37,12 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
         created_at: new Date().toISOString()
       };
 
+      console.log("Validating scan...");
       const validation = validateScan(newScan, existingScans);
 
       if (validation.isValid) {
+        console.log("Scan validation successful, saving to database...");
+        
         // Enregistrer le scan dans Supabase
         const { data, error } = await supabase
           .from('scans')
@@ -45,13 +51,13 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
           .single();
 
         if (error) {
-          console.error("Erreur lors de l'enregistrement du scan:", error);
+          console.error("Database error:", error);
           playError();
           toast.error("Erreur lors de l'enregistrement du scan");
           return;
         }
 
-        console.log("Scan enregistré avec succès:", data);
+        console.log("Scan saved successfully:", data);
         playSuccess();
         await onScanSuccess(newScan);
         setShowSuccess(true);
@@ -62,16 +68,18 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
           description: `Scan ${type} enregistré à ${new Date().toLocaleTimeString()}`
         });
       } else {
+        console.log("Scan validation failed:", validation.message);
         playError();
         toast.error(validation.message);
       }
     } catch (error) {
-      console.error("Erreur lors du scan:", error);
+      console.error("Error processing scan:", error);
       toast.error("Erreur lors du scan");
       playError();
     } finally {
       setTimeout(() => {
         setProcessingCode(false);
+        console.log("Scan processing completed");
       }, 1000);
     }
   };
