@@ -11,7 +11,7 @@ interface CodeRendererProps {
 export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
   if (type === 'qr') {
     return (
-      <div className="flex justify-center p-4 bg-white rounded-lg shadow-sm">
+      <div className="flex justify-center items-center bg-white rounded-lg p-4">
         <QRCode
           value={generateUniqueQRCode(userId)}
           size={128}
@@ -23,7 +23,7 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
   }
 
   return (
-    <div className="flex justify-center p-4 bg-white rounded-lg shadow-sm">
+    <div className="flex justify-center items-center bg-white rounded-lg p-4">
       <ReactBarcode
         value={generateUniqueBarcode(userId)}
         height={50}

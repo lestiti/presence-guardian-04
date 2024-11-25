@@ -1,24 +1,15 @@
 import { toPng } from "html-to-image";
-import JSZip from "jszip";
 import QRCode from "react-qr-code";
 import ReactBarcode from "react-barcode";
 import { generateUniqueQRCode, generateUniqueBarcode } from "./codeGenerators";
 import { createElement } from 'react';
 import ReactDOMServer from "react-dom/server";
 
-interface ImageOptions {
-  width?: number;
-  height?: number;
-  [key: string]: any;
-}
-
-const generateImage = async (element: HTMLElement, options: ImageOptions = {}): Promise<string> => {
-  const defaultOptions = {
+const generateImage = async (element: HTMLElement): Promise<string> => {
+  const options = {
     quality: 0.95,
     pixelRatio: 2,
     backgroundColor: '#ffffff',
-    width: options.width || undefined,
-    height: options.height || undefined,
     style: {
       margin: '20px',
       padding: '20px',
@@ -26,11 +17,11 @@ const generateImage = async (element: HTMLElement, options: ImageOptions = {}): 
     }
   };
 
-  // Attendre que les images soient chargées
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  // Wait for any potential rendering
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
-    return await toPng(element, { ...defaultOptions, ...options });
+    return await toPng(element, options);
   } catch (error) {
     console.error("Erreur lors de la génération de l'image:", error);
     throw error;
@@ -38,12 +29,11 @@ const generateImage = async (element: HTMLElement, options: ImageOptions = {}): 
 };
 
 export const generateCodeImages = async (userId: string, userName: string): Promise<{ qrImage: string; barcodeImage: string }> => {
-  // Créer des conteneurs temporaires
   const qrContainer = document.createElement('div');
   const barcodeContainer = document.createElement('div');
   
   try {
-    // Styler les conteneurs
+    // Style containers
     [qrContainer, barcodeContainer].forEach(container => {
       container.style.cssText = `
         display: inline-block;
@@ -54,19 +44,21 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
       document.body.appendChild(container);
     });
 
-    // Générer le QR code
+    // Generate QR code
+    const qrValue = generateUniqueQRCode(userId);
     qrContainer.innerHTML = ReactDOMServer.renderToString(
       createElement(QRCode, {
-        value: generateUniqueQRCode(userId),
+        value: qrValue,
         size: 256,
         level: "H",
       })
     );
 
-    // Générer le code-barres
+    // Generate barcode
+    const barcodeValue = generateUniqueBarcode(userId);
     barcodeContainer.innerHTML = ReactDOMServer.renderToString(
       createElement(ReactBarcode, {
-        value: generateUniqueBarcode(userId),
+        value: barcodeValue,
         height: 100,
         width: 2,
         displayValue: true,
@@ -75,10 +67,10 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
       })
     );
 
-    // Attendre que les éléments soient rendus
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for rendering
+    await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Générer les images
+    // Generate images
     const [qrImage, barcodeImage] = await Promise.all([
       generateImage(qrContainer),
       generateImage(barcodeContainer)
@@ -86,7 +78,7 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
 
     return { qrImage, barcodeImage };
   } finally {
-    // Nettoyage
+    // Cleanup
     [qrContainer, barcodeContainer].forEach(container => {
       if (container.parentNode) {
         container.parentNode.removeChild(container);

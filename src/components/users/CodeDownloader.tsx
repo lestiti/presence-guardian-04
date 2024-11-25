@@ -23,11 +23,9 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
         throw new Error("Erreur lors de la génération des images");
       }
 
-      // Ajouter au ZIP
       zip.file(`${userName}-qr.png`, qrImage.split('base64,')[1], { base64: true });
       zip.file(`${userName}-barcode.png`, barcodeImage.split('base64,')[1], { base64: true });
 
-      // Générer et télécharger le ZIP
       const content = await zip.generateAsync({ type: "blob" });
       await downloadZipFile(content, `${userName}-codes.zip`);
 
@@ -42,11 +40,15 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
     <div className="space-y-6 py-4">
       <div className="space-y-2">
         <h3 className="text-lg font-medium">QR Code</h3>
-        <CodeRenderer userId={userId} type="qr" />
+        <div className="bg-white p-4 rounded-lg">
+          <CodeRenderer userId={userId} type="qr" />
+        </div>
       </div>
       <div className="space-y-2">
         <h3 className="text-lg font-medium">Code-barres</h3>
-        <CodeRenderer userId={userId} type="barcode" />
+        <div className="bg-white p-4 rounded-lg">
+          <CodeRenderer userId={userId} type="barcode" />
+        </div>
       </div>
       <Button 
         variant="outline" 
