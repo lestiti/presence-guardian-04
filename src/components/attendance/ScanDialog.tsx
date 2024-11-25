@@ -27,7 +27,7 @@ export const ScanDialog = ({
   const [scanType, setScanType] = useState<ScanType>("QR");
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const { selectedDevice } = useScanDevice();
-  const { handleSuccessfulScan, showSuccess } = useScanHandler({
+  const { handleSuccessfulScan, showSuccess, processingCode } = useScanHandler({
     onScanSuccess,
     attendance,
     direction,
@@ -51,9 +51,10 @@ export const ScanDialog = ({
     let lastKeyTime = Date.now();
     const SCANNER_TIMEOUT = 50;
 
-    const handleKeyPress = (event: KeyboardEvent) => {
-      const currentTime = Date.now();
+    const handleKeyPress = async (event: KeyboardEvent) => {
+      if (!isScanning || processingCode) return;
 
+      const currentTime = Date.now();
       if (currentTime - lastKeyTime > SCANNER_TIMEOUT) {
         currentCode = "";
       }
@@ -61,7 +62,7 @@ export const ScanDialog = ({
 
       if (event.key === "Enter" && currentCode) {
         const scanType: ScanType = currentCode.startsWith("FIF") ? "BARCODE" : "QR";
-        handleSuccessfulScan(currentCode, scanType);
+        await handleSuccessfulScan(currentCode, scanType);
         currentCode = "";
         return;
       }
@@ -76,13 +77,15 @@ export const ScanDialog = ({
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
     };
-  }, [isScanning, handleSuccessfulScan]);
+  }, [isScanning, handleSuccessfulScan, processingCode]);
 
-  const handleQRResult = (result: any) => {
+  const handleQRResult = async (result: any) => {
+    if (!isScanning || processingCode) return;
+    
     if (result) {
       const decodedText = result.getText();
       if (decodedText) {
-        handleSuccessfulScan(decodedText, "QR");
+        await handleSuccessfulScan(decodedText, "QR");
       }
     }
   };

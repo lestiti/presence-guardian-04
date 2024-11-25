@@ -1,5 +1,5 @@
 import { QrReader } from "react-qr-reader";
-import { Camera, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 interface ScannerUIProps {
   selectedDevice: MediaDeviceInfo | null;
@@ -20,6 +20,8 @@ export const ScannerUI = ({ selectedDevice, isScanning, showSuccess, onResult }:
         }}
         onResult={onResult}
         className="w-full h-full"
+        scanDelay={500}
+        videoId="qr-video"
       />
       <div className={`absolute inset-0 pointer-events-none border-4 ${
         isScanning ? 'border-primary animate-pulse' : 'border-gray-300'
