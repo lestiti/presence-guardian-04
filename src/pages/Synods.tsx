@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { Grid, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Synod, SynodFormData } from "@/types/synod";
+import { Loader2 } from "lucide-react";
 import { AccessCodeDialog } from "@/components/access/AccessCodeDialog";
 import { useAccess } from "@/hooks/useAccess";
 import { toast } from "sonner";
@@ -12,59 +10,44 @@ import { SynodsList } from "@/components/synods/SynodsList";
 import { supabase } from "@/integrations/supabase/client";
 
 const Synods = () => {
-  const { role } = useAccess();
+  const { role, accessCode } = useAccess();
   const { synods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
   const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
-  const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
-  const [formData, setFormData] = useState<SynodFormData>({
+  const [selectedSynod, setSelectedSynod] = useState(null);
+  const [formData, setFormData] = useState({
     name: "",
     description: "",
     color: "#10B981",
   });
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setShowAccessDialog(true);
-        setIsLoading(false);
-        return;
-      }
-
+    const loadData = async () => {
       try {
+        if (role === 'public' || !accessCode) {
+          setShowAccessDialog(true);
+          setIsLoading(false);
+          return;
+        }
+
         await fetchSynods();
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching synods:', error);
+        console.error('Error loading synods:', error);
         toast.error("Erreur lors du chargement des synodes");
-      } finally {
         setIsLoading(false);
       }
     };
 
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN') {
-        await fetchSynods();
-      } else if (event === 'SIGNED_OUT') {
-        setShowAccessDialog(true);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [fetchSynods]);
+    loadData();
+  }, [role, accessCode, fetchSynods]);
 
   const handleSave = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Vous devez être connecté pour effectuer cette action");
-        setShowAccessDialog(true);
+      if (role !== 'super_admin') {
+        toast.error("Vous devez être super admin pour effectuer cette action");
         return;
       }
 
@@ -87,10 +70,8 @@ const Synods = () => {
 
   const handleDelete = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Vous devez être connecté pour effectuer cette action");
-        setShowAccessDialog(true);
+      if (role !== 'super_admin') {
+        toast.error("Vous devez être super admin pour effectuer cette action");
         return;
       }
 

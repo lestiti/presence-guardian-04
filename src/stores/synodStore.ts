@@ -26,15 +26,17 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
         .order('name');
       
       if (error) {
-        console.error('Error fetching synods:', error);
-        toast.error("Erreur lors du chargement des synodes");
+        if (error.code === '42501') {
+          toast.error("Vous n'avez pas les permissions nécessaires");
+        } else {
+          toast.error("Erreur lors du chargement des synodes");
+        }
         throw error;
       }
 
       set({ synods: data || [] });
     } catch (error) {
       console.error('Error in fetchSynods:', error);
-      toast.error("Erreur lors du chargement des synodes");
       throw error;
     }
   },
@@ -49,14 +51,15 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       
       if (error) {
         if (error.code === '42501') {
-          toast.error("Vous n'avez pas les permissions nécessaires");
-        } else {
-          toast.error("Erreur lors de la création du synode");
+          toast.error("Vous n'avez pas les permissions nécessaires. Assurez-vous d'être super_admin.");
+          return;
         }
+        toast.error("Erreur lors de la création du synode");
         throw error;
       }
 
       if (!data) {
+        toast.error("Erreur: Aucune donnée retournée après la création");
         throw new Error("No data returned from insert");
       }
 

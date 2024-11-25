@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 interface AccessState {
   role: AccessRole;
+  accessCode: string | null;
   setRole: (role: AccessRole) => void;
   checkAccessCode: (code: string) => Promise<boolean>;
   clearAccess: () => void;
@@ -15,6 +16,7 @@ export const useAccess = create<AccessState>()(
   persist(
     (set) => ({
       role: 'public',
+      accessCode: null,
       setRole: (role) => set({ role }),
       checkAccessCode: async (code) => {
         try {
@@ -23,7 +25,7 @@ export const useAccess = create<AccessState>()(
             .select('role')
             .eq('code', code)
             .eq('is_active', true)
-            .maybeSingle(); // Using maybeSingle() instead of single()
+            .maybeSingle();
 
           if (error) {
             console.error('Error checking access code:', error);
@@ -36,7 +38,18 @@ export const useAccess = create<AccessState>()(
             return false;
           }
           
-          set({ role: data.role as AccessRole });
+          // Store both role and access code
+          set({ 
+            role: data.role as AccessRole,
+            accessCode: code 
+          });
+          
+          // Update last_used_at
+          await supabase
+            .from('access_codes')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('code', code);
+
           toast.success('Code d\'accès validé');
           return true;
         } catch (error) {
@@ -45,7 +58,7 @@ export const useAccess = create<AccessState>()(
           return false;
         }
       },
-      clearAccess: () => set({ role: 'public' }),
+      clearAccess: () => set({ role: 'public', accessCode: null }),
     }),
     {
       name: 'access-storage',
