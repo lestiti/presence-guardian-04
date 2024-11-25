@@ -37,13 +37,31 @@ export const ScanDialog = ({
   useEffect(() => {
     if (open) {
       setIsScanning(true);
-      toast.info("Scanner activé", {
-        description: scanType === "QR" ? "Placez un QR code devant la caméra" : "Utilisez un scanner de code-barres"
-      });
     } else {
       setIsScanning(false);
     }
-  }, [open, scanType]);
+  }, [open]);
+
+  useEffect(() => {
+    if (open && isScanning) {
+      toast.info(
+        scanType === "QR" 
+          ? "Placez un QR code devant la caméra" 
+          : "Utilisez un scanner de code-barres"
+      );
+    }
+  }, [open, isScanning, scanType]);
+
+  const handleQRResult = async (result: any) => {
+    if (!isScanning || processingCode) return;
+    
+    if (result) {
+      const decodedText = result.getText();
+      if (decodedText) {
+        await handleSuccessfulScan(decodedText, "QR");
+      }
+    }
+  };
 
   // Handle physical barcode scanners
   useEffect(() => {
@@ -61,8 +79,7 @@ export const ScanDialog = ({
       lastKeyTime = currentTime;
 
       if (event.key === "Enter" && currentCode) {
-        const scanType: ScanType = currentCode.startsWith("FIF") ? "BARCODE" : "QR";
-        await handleSuccessfulScan(currentCode, scanType);
+        await handleSuccessfulScan(currentCode, "BARCODE");
         currentCode = "";
         return;
       }
@@ -78,17 +95,6 @@ export const ScanDialog = ({
       window.removeEventListener("keypress", handleKeyPress);
     };
   }, [isScanning, handleSuccessfulScan, processingCode]);
-
-  const handleQRResult = async (result: any) => {
-    if (!isScanning || processingCode) return;
-    
-    if (result) {
-      const decodedText = result.getText();
-      if (decodedText) {
-        await handleSuccessfulScan(decodedText, "QR");
-      }
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

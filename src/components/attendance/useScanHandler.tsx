@@ -14,12 +14,12 @@ interface UseScanHandlerProps {
 export const useScanHandler = ({ onScanSuccess, attendance, direction, existingScans }: UseScanHandlerProps) => {
   const [processingCode, setProcessingCode] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
-  const [playSuccess] = useSound("/sounds/success.mp3");
-  const [playError] = useSound("/sounds/error.mp3");
+  const [playSuccess] = useSound("/sounds/success.mp3", { volume: 0.5 });
+  const [playError] = useSound("/sounds/error.mp3", { volume: 0.5 });
 
   const handleSuccessfulScan = async (code: string, type: ScanType) => {
     if (processingCode) return;
-
+    
     setProcessingCode(true);
     
     try {
@@ -38,7 +38,7 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
         playSuccess();
         await onScanSuccess(newScan);
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 1000);
+        setTimeout(() => setShowSuccess(false), 1500);
         toast.success(validation.message, {
           description: `Scan ${type} enregistré à ${new Date().toLocaleTimeString()}`
         });
@@ -53,7 +53,7 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
     } finally {
       setTimeout(() => {
         setProcessingCode(false);
-      }, 500);
+      }, 1500);
     }
   };
 
