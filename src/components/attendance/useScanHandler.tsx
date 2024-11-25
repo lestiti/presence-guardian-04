@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import useSound from "use-sound";
 import { validateScan } from "@/utils/scanValidation";
@@ -46,6 +46,10 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
         playError();
         toast.error(validation.message);
       }
+    } catch (error) {
+      console.error("Erreur lors du scan:", error);
+      toast.error("Erreur lors du scan");
+      playError();
     } finally {
       setTimeout(() => {
         setProcessingCode(false);
