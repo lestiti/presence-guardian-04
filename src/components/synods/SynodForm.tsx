@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
 import { SynodFormData } from "@/types/synod";
 import { toast } from "sonner";
@@ -25,7 +23,6 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
       return;
     }
 
-    // Validate hex color format
     const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
     if (!hexColorRegex.test(formData.color)) {
       toast.error("La couleur doit être au format hexadécimal (ex: #FF0000)");
@@ -36,6 +33,11 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
     setHasChanges(false);
   };
 
+  const updateFormData = (updates: Partial<SynodFormData>) => {
+    setFormData({ ...formData, ...updates });
+    setHasChanges(true);
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-4 py-4">
@@ -44,21 +46,15 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => {
-              setFormData({ ...formData, name: e.target.value });
-              setHasChanges(true);
-            }}
+            onChange={(e) => updateFormData({ name: e.target.value })}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
           <Input
             id="description"
-            value={formData.description}
-            onChange={(e) => {
-              setFormData({ ...formData, description: e.target.value });
-              setHasChanges(true);
-            }}
+            value={formData.description || ""}
+            onChange={(e) => updateFormData({ description: e.target.value })}
           />
         </div>
         <div className="space-y-2">
@@ -71,8 +67,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
               value={formData.color}
               onChange={(e) => {
                 const value = e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`;
-                setFormData({ ...formData, color: value });
-                setHasChanges(true);
+                updateFormData({ color: value });
               }}
               className="font-mono"
             />
