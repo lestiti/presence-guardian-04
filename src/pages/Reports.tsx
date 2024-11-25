@@ -23,19 +23,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { usePDF } from "react-to-pdf";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useScans } from "@/hooks/useScanQueries";
 import { useRealtimeScans } from "@/hooks/useRealtimeScans";
-
-interface AttendanceData {
-  date: string;
-  présents: number;
-  absents: number;
-}
-
-interface RoleData {
-  name: string;
-  value: number;
-  color: string;
-}
 
 const Reports = () => {
   const [selectedSynod, setSelectedSynod] = useState<string>("all");
@@ -49,52 +38,27 @@ const Reports = () => {
   // Enable real-time updates
   useRealtimeScans();
 
-  // Fetch attendance data
-  const { data: attendanceData, isLoading: isLoadingAttendance } = useQuery({
-    queryKey: ['attendance', selectedSynod, selectedRole, selectedPeriod, startDate],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('scans')
-          .select(`
-            *,
-            users (
-              role,
-              synod_id
-            )
-          `)
-          .gte('timestamp', startDate.toISOString());
+  // Fetch scans data with real-time updates
+  const { data: scansData, isLoading: isLoadingScans } = useScans();
 
-        if (error) throw error;
+  // Process scans data for charts
+  const processedData = scansData?.reduce((acc: any[], scan: any) => {
+    const date = new Date(scan.timestamp).toLocaleDateString();
+    const existingDate = acc.find(item => item.date === date);
 
-        // Process data for chart
-        const processedData: AttendanceData[] = data.reduce((acc: AttendanceData[], scan) => {
-          const date = new Date(scan.timestamp).toLocaleDateString();
-          const existingDate = acc.find(item => item.date === date);
+    if (existingDate) {
+      if (scan.direction === 'IN') existingDate.présents++;
+      else existingDate.absents++;
+    } else {
+      acc.push({
+        date,
+        présents: scan.direction === 'IN' ? 1 : 0,
+        absents: scan.direction === 'OUT' ? 1 : 0
+      });
+    }
 
-          if (existingDate) {
-            if (scan.direction === 'IN') existingDate.présents++;
-            else existingDate.absents++;
-          } else {
-            acc.push({
-              date,
-              présents: scan.direction === 'IN' ? 1 : 0,
-              absents: scan.direction === 'OUT' ? 1 : 0
-            });
-          }
-
-          return acc;
-        }, []);
-
-        return processedData;
-      } catch (error) {
-        console.error('Error fetching attendance data:', error);
-        toast.error("Erreur lors du chargement des données");
-        return [];
-      }
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    return acc;
+  }, []) || [];
 
   // Fetch role distribution data
   const { data: roleData, isLoading: isLoadingRoles } = useQuery({
@@ -131,7 +95,7 @@ const Reports = () => {
         return [];
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
   const handleExportPDF = () => {
@@ -146,9 +110,8 @@ const Reports = () => {
 
   const handleExportCSV = () => {
     try {
-      // Convert data to CSV format
       const csvContent = "data:text/csv;charset=utf-8," + 
-        attendanceData?.map(row => `${row.date},${row.présents},${row.absents}`).join("\n");
+        processedData?.map(row => `${row.date},${row.présents},${row.absents}`).join("\n");
       
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
@@ -175,7 +138,7 @@ const Reports = () => {
           <Button 
             onClick={handleExportCSV} 
             className="flex items-center gap-2"
-            disabled={isLoadingAttendance}
+            disabled={isLoadingScans}
           >
             <Download className="w-4 h-4" />
             Exporter CSV
@@ -183,7 +146,7 @@ const Reports = () => {
           <Button 
             onClick={handleExportPDF} 
             className="flex items-center gap-2"
-            disabled={isLoadingAttendance}
+            disabled={isLoadingScans}
           >
             <FileText className="w-4 h-4" />
             Exporter PDF
@@ -235,13 +198,13 @@ const Reports = () => {
         </div>
 
         <div className="h-[400px] mt-6">
-          {isLoadingAttendance ? (
+          {isLoadingScans ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : attendanceData && attendanceData.length > 0 ? (
+          ) : processedData && processedData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={attendanceData}>
+              <BarChart data={processedData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
@@ -313,10 +276,10 @@ const Reports = () => {
             <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
               <p className="text-sm text-green-600 dark:text-green-400">Taux de présence moyen</p>
               <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                {attendanceData && attendanceData.length > 0
+                {processedData && processedData.length > 0
                   ? `${Math.round(
-                      (attendanceData.reduce((sum, day) => sum + day.présents, 0) /
-                        (attendanceData.reduce((sum, day) => sum + day.présents + day.absents, 0) || 1)) *
+                      (processedData.reduce((sum, day) => sum + day.présents, 0) /
+                        (processedData.reduce((sum, day) => sum + day.présents + day.absents, 0) || 1)) *
                         100
                     )}%`
                   : '0%'}
@@ -325,13 +288,13 @@ const Reports = () => {
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
               <p className="text-sm text-blue-600 dark:text-blue-400">Total des présences</p>
               <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                {attendanceData?.reduce((sum, day) => sum + day.présents, 0) || 0}
+                {processedData?.reduce((sum, day) => sum + day.présents, 0) || 0}
               </p>
             </div>
             <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
               <p className="text-sm text-purple-600 dark:text-purple-400">Événements</p>
               <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                {attendanceData?.length || 0}
+                {processedData?.length || 0}
               </p>
             </div>
           </div>

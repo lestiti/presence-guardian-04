@@ -38,12 +38,7 @@ const setupRealtimeSubscription = (
         }
       }
     )
-    .subscribe((status) => {
-      if (status === 'CHANNEL_ERROR') {
-        console.error("Error in scans subscription");
-        toast.error("Erreur de synchronisation des scans");
-      }
-    });
+    .subscribe();
 
   return () => {
     channel.unsubscribe();
