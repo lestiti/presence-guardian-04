@@ -11,8 +11,7 @@ import { Synod } from "@/types/synod";
 
 const Synods = () => {
   const { role, accessCode } = useAccess();
-  const { synods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
-  const [isLoading, setIsLoading] = useState(true);
+  const { synods, isLoading, error, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
@@ -25,20 +24,12 @@ const Synods = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      try {
-        if (role === 'public' || !accessCode) {
-          setShowAccessDialog(true);
-          setIsLoading(false);
-          return;
-        }
-
-        await fetchSynods();
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading synods:', error);
-        toast.error("Erreur lors du chargement des synodes");
-        setIsLoading(false);
+      if (role === 'public' || !accessCode) {
+        setShowAccessDialog(true);
+        return;
       }
+
+      await fetchSynods();
     };
 
     loadData();
@@ -91,6 +82,20 @@ const Synods = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
+        <p className="text-red-500">Une erreur est survenue lors du chargement des synodes</p>
+        <button 
+          onClick={() => fetchSynods()}
+          className="px-4 py-2 text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          Réessayer
+        </button>
       </div>
     );
   }

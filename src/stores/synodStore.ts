@@ -2,9 +2,12 @@ import { create } from 'zustand';
 import { Synod } from '@/types/synod';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAccess } from '@/hooks/useAccess';
 
 interface SynodStore {
   synods: Synod[];
+  isLoading: boolean;
+  error: string | null;
   setSynods: (synods: Synod[]) => void;
   fetchSynods: () => Promise<void>;
   addSynod: (synod: Omit<Synod, 'id' | 'created_at' | 'updated_at' | 'member_count'>) => Promise<void>;
@@ -15,34 +18,39 @@ interface SynodStore {
 
 export const useSynodStore = create<SynodStore>((set, get) => ({
   synods: [],
+  isLoading: false,
+  error: null,
   
   setSynods: (synods) => set({ synods }),
   
   fetchSynods: async () => {
     try {
+      set({ isLoading: true, error: null });
+      
       const { data, error } = await supabase
         .from('synods')
         .select('*')
         .order('name');
       
       if (error) {
-        if (error.code === '42501') {
-          toast.error("Vous n'avez pas les permissions nécessaires");
-        } else {
-          toast.error("Erreur lors du chargement des synodes");
-        }
-        throw error;
+        console.error('Error fetching synods:', error);
+        set({ error: error.message });
+        toast.error("Erreur lors du chargement des synodes");
+        return;
       }
 
-      set({ synods: data || [] });
+      set({ synods: data || [], isLoading: false });
     } catch (error) {
       console.error('Error in fetchSynods:', error);
-      throw error;
+      set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
+      toast.error("Erreur lors du chargement des synodes");
     }
   },
 
   addSynod: async (synod) => {
     try {
+      set({ isLoading: true, error: null });
+      
       const { data, error } = await supabase
         .from('synods')
         .insert([synod])
@@ -52,30 +60,33 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       if (error) {
         if (error.code === '42501') {
           toast.error("Vous n'avez pas les permissions nécessaires. Assurez-vous d'être super_admin.");
+          set({ error: error.message, isLoading: false });
           return;
         }
-        toast.error("Erreur lors de la création du synode");
         throw error;
       }
 
       if (!data) {
-        toast.error("Erreur: Aucune donnée retournée après la création");
-        throw new Error("No data returned from insert");
+        throw new Error("Aucune donnée retournée après la création");
       }
 
       set((state) => ({
-        synods: [...state.synods, data]
+        synods: [...state.synods, data],
+        isLoading: false
       }));
 
       toast.success("Synode créé avec succès");
     } catch (error) {
       console.error('Error in addSynod:', error);
-      throw error;
+      set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
+      toast.error("Erreur lors de la création du synode");
     }
   },
 
   updateSynod: async (id, synod) => {
     try {
+      set({ isLoading: true, error: null });
+      
       const { error } = await supabase
         .from('synods')
         .update({
@@ -87,8 +98,8 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       if (error) {
         if (error.code === '42501') {
           toast.error("Vous n'avez pas les permissions nécessaires");
-        } else {
-          toast.error("Erreur lors de la modification du synode");
+          set({ error: error.message, isLoading: false });
+          return;
         }
         throw error;
       }
@@ -96,18 +107,22 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       set((state) => ({
         synods: state.synods.map((s) => 
           s.id === id ? { ...s, ...synod, updated_at: new Date().toISOString() } : s
-        )
+        ),
+        isLoading: false
       }));
 
       toast.success("Synode modifié avec succès");
     } catch (error) {
       console.error('Error in updateSynod:', error);
-      throw error;
+      set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
+      toast.error("Erreur lors de la modification du synode");
     }
   },
 
   deleteSynod: async (id) => {
     try {
+      set({ isLoading: true, error: null });
+      
       const { error } = await supabase
         .from('synods')
         .delete()
@@ -116,20 +131,22 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       if (error) {
         if (error.code === '42501') {
           toast.error("Vous n'avez pas les permissions nécessaires");
-        } else {
-          toast.error("Erreur lors de la suppression du synode");
+          set({ error: error.message, isLoading: false });
+          return;
         }
         throw error;
       }
 
       set((state) => ({
-        synods: state.synods.filter((s) => s.id !== id)
+        synods: state.synods.filter((s) => s.id !== id),
+        isLoading: false
       }));
 
       toast.success("Synode supprimé avec succès");
     } catch (error) {
       console.error('Error in deleteSynod:', error);
-      throw error;
+      set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
+      toast.error("Erreur lors de la suppression du synode");
     }
   },
 
@@ -138,6 +155,8 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     if (!currentSynod) return;
 
     try {
+      set({ isLoading: true, error: null });
+      
       const newCount = Math.max((currentSynod.member_count || 0) + delta, 0);
       
       const { error } = await supabase
@@ -148,8 +167,8 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       if (error) {
         if (error.code === '42501') {
           toast.error("Vous n'avez pas les permissions nécessaires");
-        } else {
-          toast.error("Erreur lors de la mise à jour du nombre de membres");
+          set({ error: error.message, isLoading: false });
+          return;
         }
         throw error;
       }
@@ -157,11 +176,13 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       set((state) => ({
         synods: state.synods.map(s => 
           s.id === synodId ? { ...s, member_count: newCount } : s
-        )
+        ),
+        isLoading: false
       }));
     } catch (error) {
       console.error('Error in updateMemberCount:', error);
-      throw error;
+      set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
+      toast.error("Erreur lors de la mise à jour du nombre de membres");
     }
   },
 }));
