@@ -63,9 +63,6 @@ export const useCreateUser = () => {
       
       if (error) {
         console.error("Error creating user:", error);
-        if (error.code === '23505') {
-          throw new Error("Un utilisateur avec ce numéro de téléphone existe déjà");
-        }
         throw new Error("Erreur lors de la création de l'utilisateur");
       }
 
