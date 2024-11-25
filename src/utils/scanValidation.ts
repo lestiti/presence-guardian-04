@@ -4,24 +4,6 @@ export const validateScan = (
   newScan: Omit<ScanRecord, "id">,
   existingScans: ScanRecord[]
 ): { isValid: boolean; message: string } => {
-  // Get recent scans (last 30 seconds) for this user and attendance
-  const recentScans = existingScans.filter(scan => {
-    const scanTime = new Date(scan.timestamp).getTime();
-    const now = new Date().getTime();
-    const thirtySecondsAgo = now - 30000; // 30 seconds cooldown
-    
-    return scan.user_id === newScan.user_id && 
-           scan.attendance_id === newScan.attendance_id &&
-           scanTime > thirtySecondsAgo;
-  });
-
-  if (recentScans.length > 0) {
-    return {
-      isValid: false,
-      message: "Veuillez attendre 30 secondes entre chaque scan"
-    };
-  }
-
   const userScans = existingScans.filter(scan => 
     scan.user_id === newScan.user_id && 
     scan.attendance_id === newScan.attendance_id

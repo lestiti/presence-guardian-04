@@ -1,6 +1,5 @@
 import { QrReader } from "react-qr-reader";
 import { CheckCircle2 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 interface ScannerUIProps {
   selectedDevice: MediaDeviceInfo | null;
@@ -10,21 +9,12 @@ interface ScannerUIProps {
 }
 
 export const ScannerUI = ({ selectedDevice, isScanning, showSuccess, onResult }: ScannerUIProps) => {
-  const [key, setKey] = useState(0);
-
-  useEffect(() => {
-    if (isScanning) {
-      setKey(prev => prev + 1);
-    }
-  }, [isScanning]);
-
   if (!selectedDevice) return null;
 
   return (
     <div className="relative aspect-square overflow-hidden rounded-lg">
       {isScanning && (
         <QrReader
-          key={key}
           constraints={{
             deviceId: selectedDevice.deviceId,
             facingMode: "environment",
@@ -36,7 +26,7 @@ export const ScannerUI = ({ selectedDevice, isScanning, showSuccess, onResult }:
             }
           }}
           className="w-full h-full"
-          scanDelay={1000}
+          scanDelay={100}
           videoId="qr-video"
         />
       )}
