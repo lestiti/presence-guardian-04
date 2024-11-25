@@ -10,6 +10,8 @@ export const validateScan = (
   );
 
   const lastScan = userScans[userScans.length - 1];
+  console.log("Validation du scan - Dernier scan:", lastScan);
+  console.log("Nouveau scan:", newScan);
 
   if (newScan.direction === "IN") {
     if (lastScan?.direction === "IN") {
@@ -42,6 +44,8 @@ export const getCurrentStatus = (
   );
 
   const lastScan = userScans[userScans.length - 1];
+  console.log("Status actuel - Scans de l'utilisateur:", userScans);
+  console.log("Dernier scan:", lastScan);
 
   return {
     lastScan,
