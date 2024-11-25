@@ -63,6 +63,7 @@ const Synods = () => {
       });
     } catch (error) {
       console.error('Error saving synod:', error);
+      toast.error("Une erreur est survenue lors de la sauvegarde");
     }
   };
 
@@ -80,6 +81,7 @@ const Synods = () => {
       }
     } catch (error) {
       console.error('Error deleting synod:', error);
+      toast.error("Une erreur est survenue lors de la suppression");
     }
   };
 
