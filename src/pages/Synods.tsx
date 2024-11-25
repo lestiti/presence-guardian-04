@@ -7,7 +7,7 @@ import { useSynodStore } from "@/stores/synodStore";
 import { SynodDialogs } from "@/components/synods/SynodDialogs";
 import { SynodsHeader } from "@/components/synods/SynodsHeader";
 import { SynodsList } from "@/components/synods/SynodsList";
-import { SynodFormData } from "@/types/synod";
+import { Synod, SynodFormData } from "@/types/synod";
 
 const Synods = () => {
   const { role, accessCode } = useAccess();
@@ -16,10 +16,9 @@ const Synods = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
-  const [selectedSynod, setSelectedSynod] = useState(null);
+  const [selectedSynod, setSelectedSynod] = useState<Synod | null>(null);
   const [formData, setFormData] = useState<SynodFormData>({
     name: "",
-    description: "",
     color: "#10B981",
   });
 
@@ -60,7 +59,6 @@ const Synods = () => {
       setSelectedSynod(null);
       setFormData({
         name: "",
-        description: "",
         color: "#10B981",
       });
     } catch (error) {
@@ -106,7 +104,7 @@ const Synods = () => {
           setSelectedSynod(synod);
           setFormData({
             name: synod.name,
-            description: synod.description || "",
+            description: synod.description,
             color: synod.color,
           });
           setShowDialog(true);
