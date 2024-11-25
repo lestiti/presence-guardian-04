@@ -12,7 +12,7 @@ interface ImageOptions {
   [key: string]: any;
 }
 
-export const generateImage = async (element: HTMLElement, options: ImageOptions = {}): Promise<string> => {
+const generateImage = async (element: HTMLElement, options: ImageOptions = {}): Promise<string> => {
   const defaultOptions = {
     quality: 0.95,
     pixelRatio: 2,
@@ -26,64 +26,67 @@ export const generateImage = async (element: HTMLElement, options: ImageOptions 
     }
   };
 
-  // Wait for any images to load
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  // Attendre que les images soient chargées
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   try {
     return await toPng(element, { ...defaultOptions, ...options });
   } catch (error) {
-    console.error("Error generating image:", error);
+    console.error("Erreur lors de la génération de l'image:", error);
     throw error;
   }
 };
 
 export const generateCodeImages = async (userId: string, userName: string): Promise<{ qrImage: string; barcodeImage: string }> => {
-  // Create temporary containers
+  // Créer des conteneurs temporaires
   const qrContainer = document.createElement('div');
   const barcodeContainer = document.createElement('div');
   
   try {
-    // Style containers
+    // Styler les conteneurs
     [qrContainer, barcodeContainer].forEach(container => {
       container.style.cssText = `
-        position: fixed;
-        left: -9999px;
+        display: inline-block;
         background: white;
         padding: 20px;
-        width: auto;
-        height: auto;
+        margin: 10px;
       `;
       document.body.appendChild(container);
     });
 
-    // Render QR code using createElement instead of JSX
-    const qrElement = createElement(QRCode, {
-      value: generateUniqueQRCode(userId),
-      size: 256,
-      level: "H",
-      // Removed includeMargin as it's not a valid prop
-    });
-    qrContainer.innerHTML = ReactDOMServer.renderToString(qrElement);
+    // Générer le QR code
+    qrContainer.innerHTML = ReactDOMServer.renderToString(
+      createElement(QRCode, {
+        value: generateUniqueQRCode(userId),
+        size: 256,
+        level: "H",
+      })
+    );
 
-    // Render Barcode using createElement instead of JSX
-    const barcodeElement = createElement(ReactBarcode, {
-      value: generateUniqueBarcode(userId),
-      height: 100,
-      width: 2,
-      displayValue: true,
-      background: "#ffffff"
-    });
-    barcodeContainer.innerHTML = ReactDOMServer.renderToString(barcodeElement);
+    // Générer le code-barres
+    barcodeContainer.innerHTML = ReactDOMServer.renderToString(
+      createElement(ReactBarcode, {
+        value: generateUniqueBarcode(userId),
+        height: 100,
+        width: 2,
+        displayValue: true,
+        background: "#ffffff",
+        format: "CODE128"
+      })
+    );
 
-    // Generate images
+    // Attendre que les éléments soient rendus
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Générer les images
     const [qrImage, barcodeImage] = await Promise.all([
-      generateImage(qrContainer, { width: 256, height: 256 }),
-      generateImage(barcodeContainer, { width: 300, height: 100 })
+      generateImage(qrContainer),
+      generateImage(barcodeContainer)
     ]);
 
     return { qrImage, barcodeImage };
   } finally {
-    // Cleanup
+    // Nettoyage
     [qrContainer, barcodeContainer].forEach(container => {
       if (container.parentNode) {
         container.parentNode.removeChild(container);

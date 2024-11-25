@@ -19,11 +19,15 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
     try {
       const { qrImage, barcodeImage } = await generateCodeImages(userId, userName);
 
-      // Add to ZIP
+      if (!qrImage || !barcodeImage) {
+        throw new Error("Erreur lors de la génération des images");
+      }
+
+      // Ajouter au ZIP
       zip.file(`${userName}-qr.png`, qrImage.split('base64,')[1], { base64: true });
       zip.file(`${userName}-barcode.png`, barcodeImage.split('base64,')[1], { base64: true });
 
-      // Generate and download ZIP
+      // Générer et télécharger le ZIP
       const content = await zip.generateAsync({ type: "blob" });
       await downloadZipFile(content, `${userName}-codes.zip`);
 
