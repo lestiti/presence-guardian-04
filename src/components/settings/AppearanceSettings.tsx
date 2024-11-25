@@ -10,7 +10,7 @@ export const AppearanceSettings = () => {
 
   const handleThemeChange = (newTheme: string) => {
     try {
-      setTheme(newTheme);
+      setTheme(newTheme as 'light' | 'dark' | 'system');
       toast.success(`Thème ${newTheme === 'light' ? 'clair' : newTheme === 'dark' ? 'sombre' : 'système'} activé`);
     } catch (error) {
       console.error("Error changing theme:", error);
