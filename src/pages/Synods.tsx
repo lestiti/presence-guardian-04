@@ -20,6 +20,7 @@ const Synods = () => {
   const [formData, setFormData] = useState<SynodFormData>({
     name: "",
     color: "#10B981",
+    description: ""
   });
 
   useEffect(() => {
@@ -60,6 +61,7 @@ const Synods = () => {
       setFormData({
         name: "",
         color: "#10B981",
+        description: ""
       });
     } catch (error) {
       console.error('Error saving synod:', error);
@@ -106,7 +108,7 @@ const Synods = () => {
           setSelectedSynod(synod);
           setFormData({
             name: synod.name,
-            description: synod.description,
+            description: synod.description || "",
             color: synod.color,
           });
           setShowDialog(true);
