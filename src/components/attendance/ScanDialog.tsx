@@ -114,8 +114,8 @@ export const ScanDialog = ({
 
           <p className="text-center text-sm text-muted-foreground">
             {scanType === "QR" 
-              ? "Scannez autant de QR codes que nécessaire"
-              : "Scannez autant de codes-barres que nécessaire"}
+              ? "Scannez un QR code"
+              : "Scannez un code-barres"}
           </p>
         </div>
       </DialogContent>
