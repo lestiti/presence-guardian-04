@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import useSound from "use-sound";
 import { validateScan } from "@/utils/scanValidation";
 import { ScanType, ScanRecord } from "@/types/attendance";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UseScanHandlerProps {
   onScanSuccess: (scanRecord: Omit<ScanRecord, "id">) => void;
@@ -21,6 +22,7 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
     if (processingCode) return;
     
     setProcessingCode(true);
+    console.log("Code scanné:", code, "Type:", type);
     
     try {
       const newScan: Omit<ScanRecord, "id"> = {
@@ -35,11 +37,28 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
       const validation = validateScan(newScan, existingScans);
 
       if (validation.isValid) {
+        // Enregistrer le scan dans Supabase
+        const { data, error } = await supabase
+          .from('scans')
+          .insert([newScan])
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Erreur lors de l'enregistrement du scan:", error);
+          playError();
+          toast.error("Erreur lors de l'enregistrement du scan");
+          return;
+        }
+
+        console.log("Scan enregistré avec succès:", data);
         playSuccess();
         await onScanSuccess(newScan);
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 300);
-        toast.success(validation.message, {
+        setTimeout(() => setShowSuccess(false), 1000);
+
+        const actionMessage = direction === "IN" ? "Entrée" : "Sortie";
+        toast.success(`${actionMessage} enregistrée avec succès`, {
           description: `Scan ${type} enregistré à ${new Date().toLocaleTimeString()}`
         });
       } else {
@@ -53,7 +72,7 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
     } finally {
       setTimeout(() => {
         setProcessingCode(false);
-      }, 100);
+      }, 1000);
     }
   };
 
