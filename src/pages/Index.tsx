@@ -7,11 +7,15 @@ import { useSynodStore } from "@/stores/synodStore";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { AttendanceChart } from "@/components/dashboard/AttendanceChart";
 import { SynodActivity } from "@/components/dashboard/SynodActivity";
+import { useRealtimeScans } from "@/hooks/useRealtimeScans";
 
 const Index = () => {
   const [showScanDialog, setShowScanDialog] = useState(false);
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const { synods } = useSynodStore();
+
+  // Enable real-time updates
+  useRealtimeScans();
 
   const handleScanSuccess = async (scanRecord: Omit<ScanRecord, "id">) => {
     try {

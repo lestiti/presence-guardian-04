@@ -23,6 +23,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { usePDF } from "react-to-pdf";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeScans } from "@/hooks/useRealtimeScans";
 
 interface AttendanceData {
   date: string;
@@ -44,6 +45,9 @@ const Reports = () => {
 
   const { theme } = useTheme();
   const { toPDF, targetRef } = usePDF({ filename: 'rapport-presence.pdf' });
+
+  // Enable real-time updates
+  useRealtimeScans();
 
   // Fetch attendance data
   const { data: attendanceData, isLoading: isLoadingAttendance } = useQuery({
