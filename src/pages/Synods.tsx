@@ -6,10 +6,10 @@ import { AccessCodeDialog } from "@/components/access/AccessCodeDialog";
 import { useAccess } from "@/hooks/useAccess";
 import { toast } from "sonner";
 import { useSynodStore } from "@/stores/synodStore";
-import { SynodCard } from "@/components/synods/SynodCard";
 import { SynodDialogs } from "@/components/synods/SynodDialogs";
 import { SynodsHeader } from "@/components/synods/SynodsHeader";
 import { SynodsList } from "@/components/synods/SynodsList";
+import { supabase } from "@/integrations/supabase/client";
 
 const Synods = () => {
   const { role } = useAccess();
@@ -26,7 +26,14 @@ const Synods = () => {
   });
 
   useEffect(() => {
-    const loadData = async () => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setShowAccessDialog(true);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         await fetchSynods();
       } catch (error) {
@@ -37,15 +44,30 @@ const Synods = () => {
       }
     };
 
-    if (role === 'public') {
-      setShowAccessDialog(true);
-    } else {
-      loadData();
-    }
-  }, [role, fetchSynods]);
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        await fetchSynods();
+      } else if (event === 'SIGNED_OUT') {
+        setShowAccessDialog(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchSynods]);
 
   const handleSave = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Vous devez être connecté pour effectuer cette action");
+        setShowAccessDialog(true);
+        return;
+      }
+
       if (selectedSynod) {
         await updateSynod(selectedSynod.id, formData);
       } else {
@@ -60,13 +82,18 @@ const Synods = () => {
       });
     } catch (error) {
       console.error('Error saving synod:', error);
-      toast.error("Erreur lors de la sauvegarde du synode");
-      throw error;
     }
   };
 
   const handleDelete = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Vous devez être connecté pour effectuer cette action");
+        setShowAccessDialog(true);
+        return;
+      }
+
       if (selectedSynod) {
         await deleteSynod(selectedSynod.id);
         setShowDeleteDialog(false);
@@ -74,8 +101,6 @@ const Synods = () => {
       }
     } catch (error) {
       console.error('Error deleting synod:', error);
-      toast.error("Erreur lors de la suppression du synode");
-      throw error;
     }
   };
 
