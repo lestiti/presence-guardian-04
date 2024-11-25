@@ -1,6 +1,8 @@
 import { Header } from "./Header";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTheme } from "@/hooks/useTheme";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { Toaster } from "@/components/ui/sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,11 +20,14 @@ export const Layout = ({ children }: LayoutProps) => {
         <Header />
         <main className="relative min-h-screen pt-20 pb-8">
           <div className="container mx-auto px-4">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
         <div className="fixed bottom-4 right-4 animate-pulse-glow rounded-full w-2 h-2 bg-primary" />
       </div>
+      <Toaster />
     </div>
   );
 };
