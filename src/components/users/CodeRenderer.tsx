@@ -15,7 +15,7 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
         <QRCode
           value={generateUniqueQRCode(userId)}
           size={200}
-          level="M"
+          level="L"
           className="h-48 w-48"
           style={{ 
             padding: '1rem',
