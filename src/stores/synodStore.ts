@@ -51,9 +51,16 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      // Get the access code from the store
+      const { accessCode } = useAccess.getState();
+      
+      if (!accessCode) {
+        throw new Error("Code d'accès requis pour cette opération");
+      }
+
       const { data, error } = await supabase
         .from('synods')
-        .insert([synod])
+        .insert([{ ...synod, created_at: new Date().toISOString() }])
         .select()
         .single();
       
@@ -87,6 +94,13 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      // Get the access code from the store
+      const { accessCode } = useAccess.getState();
+      
+      if (!accessCode) {
+        throw new Error("Code d'accès requis pour cette opération");
+      }
+
       const { error } = await supabase
         .from('synods')
         .update({
@@ -123,6 +137,13 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      // Get the access code from the store
+      const { accessCode } = useAccess.getState();
+      
+      if (!accessCode) {
+        throw new Error("Code d'accès requis pour cette opération");
+      }
+
       const { error } = await supabase
         .from('synods')
         .delete()
