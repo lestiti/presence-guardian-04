@@ -20,8 +20,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
   
   fetchSynods: async () => {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
       const { data, error } = await supabase
         .from('synods')
         .select('*')
@@ -43,12 +41,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
 
   addSynod: async (synod) => {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
-        toast.error("Vous devez être connecté pour effectuer cette action");
-        throw new Error("Authentication required");
-      }
-
       const { data, error } = await supabase
         .from('synods')
         .insert([synod])
@@ -56,8 +48,11 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
         .single();
       
       if (error) {
-        console.error('Error adding synod:', error);
-        toast.error("Erreur lors de la création du synode");
+        if (error.code === '42501') {
+          toast.error("Vous n'avez pas les permissions nécessaires");
+        } else {
+          toast.error("Erreur lors de la création du synode");
+        }
         throw error;
       }
 
@@ -72,19 +67,12 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       toast.success("Synode créé avec succès");
     } catch (error) {
       console.error('Error in addSynod:', error);
-      toast.error("Erreur lors de la création du synode");
       throw error;
     }
   },
 
   updateSynod: async (id, synod) => {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
-        toast.error("Vous devez être connecté pour effectuer cette action");
-        throw new Error("Authentication required");
-      }
-
       const { error } = await supabase
         .from('synods')
         .update({
@@ -94,8 +82,11 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
         .eq('id', id);
       
       if (error) {
-        console.error('Error updating synod:', error);
-        toast.error("Erreur lors de la modification du synode");
+        if (error.code === '42501') {
+          toast.error("Vous n'avez pas les permissions nécessaires");
+        } else {
+          toast.error("Erreur lors de la modification du synode");
+        }
         throw error;
       }
 
@@ -108,27 +99,23 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       toast.success("Synode modifié avec succès");
     } catch (error) {
       console.error('Error in updateSynod:', error);
-      toast.error("Erreur lors de la modification du synode");
       throw error;
     }
   },
 
   deleteSynod: async (id) => {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
-        toast.error("Vous devez être connecté pour effectuer cette action");
-        throw new Error("Authentication required");
-      }
-
       const { error } = await supabase
         .from('synods')
         .delete()
         .eq('id', id);
       
       if (error) {
-        console.error('Error deleting synod:', error);
-        toast.error("Erreur lors de la suppression du synode");
+        if (error.code === '42501') {
+          toast.error("Vous n'avez pas les permissions nécessaires");
+        } else {
+          toast.error("Erreur lors de la suppression du synode");
+        }
         throw error;
       }
 
@@ -139,7 +126,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       toast.success("Synode supprimé avec succès");
     } catch (error) {
       console.error('Error in deleteSynod:', error);
-      toast.error("Erreur lors de la suppression du synode");
       throw error;
     }
   },
@@ -149,12 +135,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     if (!currentSynod) return;
 
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
-        toast.error("Vous devez être connecté pour effectuer cette action");
-        throw new Error("Authentication required");
-      }
-
       const newCount = Math.max((currentSynod.member_count || 0) + delta, 0);
       
       const { error } = await supabase
@@ -163,8 +143,11 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
         .eq('id', synodId);
 
       if (error) {
-        console.error('Error updating member count:', error);
-        toast.error("Erreur lors de la mise à jour du nombre de membres");
+        if (error.code === '42501') {
+          toast.error("Vous n'avez pas les permissions nécessaires");
+        } else {
+          toast.error("Erreur lors de la mise à jour du nombre de membres");
+        }
         throw error;
       }
 
@@ -175,7 +158,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       }));
     } catch (error) {
       console.error('Error in updateMemberCount:', error);
-      toast.error("Erreur lors de la mise à jour du nombre de membres");
       throw error;
     }
   },
