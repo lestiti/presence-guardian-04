@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { UserData } from "@/types/user";
+import { UserFormProps } from "@/types/userTypes";
 import { SynodSelect } from "./SynodSelect";
 import { FormField } from "./FormField";
-import { validateUserForm, UserFormErrors } from "@/utils/userValidation";
 import {
   Select,
   SelectContent,
@@ -13,14 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface UserFormProps {
-  formData: Partial<UserData>;
-  setFormData: (data: Partial<UserData>) => void;
-  onSave: () => void;
-  onCancel: () => void;
-  isEdit: boolean;
-}
+import { useUserForm } from "@/hooks/useUserForm";
 
 export const UserForm = ({ 
   formData, 
@@ -30,8 +21,7 @@ export const UserForm = ({
   isEdit 
 }: UserFormProps) => {
   const [hasChanges, setHasChanges] = useState(false);
-  const [errors, setErrors] = useState<UserFormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isSubmitting, errors, handleSubmit } = useUserForm(onSave);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -45,36 +35,13 @@ export const UserForm = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasChanges]);
 
-  const updateField = (field: keyof UserData, value: string) => {
+  const updateField = (field: keyof typeof formData, value: string) => {
     setFormData({ ...formData, [field]: value });
     setHasChanges(true);
-    if (errors[field as keyof UserFormErrors]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
   };
 
-  const handleSubmit = async () => {
-    const validationErrors = validateUserForm(formData);
-    
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      Object.values(validationErrors).forEach(error => {
-        if (error) toast.error(error);
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await onSave();
-      setHasChanges(false);
-      setErrors({});
-    } catch (error) {
-      console.error("Error saving user:", error);
-      toast.error("Une erreur est survenue lors de la sauvegarde");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleFormSubmit = async () => {
+    await handleSubmit(formData);
   };
 
   return (
@@ -141,7 +108,7 @@ export const UserForm = ({
           Annuler
         </Button>
         <Button 
-          onClick={handleSubmit}
+          onClick={handleFormSubmit}
           type="submit"
           disabled={!hasChanges || isSubmitting}
         >

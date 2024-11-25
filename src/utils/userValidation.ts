@@ -1,15 +1,8 @@
-import { UserData } from "@/types/user";
+import { UserFormData, UserValidationErrors } from "@/types/userTypes";
 import { isValidMadagascarPhone } from "./phoneValidation";
 
-export type UserFormErrors = {
-  name?: string;
-  phone?: string;
-  role?: string;
-  synod?: string;
-};
-
-export const validateUserForm = (data: Partial<UserData>): UserFormErrors => {
-  const errors: UserFormErrors = {};
+export const validateUserForm = (data: Partial<UserFormData>): UserValidationErrors => {
+  const errors: UserValidationErrors = {};
 
   if (!data.name?.trim()) {
     errors.name = "Le nom est requis";

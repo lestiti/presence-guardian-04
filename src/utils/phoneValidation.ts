@@ -1,5 +1,5 @@
 export const isValidMadagascarPhone = (phone: string): boolean => {
-  // Accepte tout numéro non vide avec au moins 8 chiffres
+  // Accept any number with at least 8 digits
   const cleanedPhone = phone.replace(/\D/g, '');
   return cleanedPhone.length >= 8;
 };
