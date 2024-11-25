@@ -16,8 +16,10 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
           value={generateUniqueQRCode(userId)}
           size={200}
           level="L"
-          className="h-48 w-48"
           style={{ 
+            height: "auto",
+            maxWidth: "100%",
+            width: "100%",
             padding: '1rem',
             backgroundColor: 'white'
           }}
@@ -35,6 +37,9 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
         displayValue={true}
         background="#ffffff"
         format="CODE128"
+        textAlign="center"
+        textPosition="bottom"
+        textMargin={8}
       />
     </div>
   );

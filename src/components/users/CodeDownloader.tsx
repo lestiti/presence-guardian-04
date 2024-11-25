@@ -37,22 +37,24 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
   }, [userId, userName]);
 
   return (
-    <div className="space-y-6 py-4">
-      <div className="space-y-2">
+    <div className="space-y-8 py-6">
+      <div className="space-y-4">
         <h3 className="text-lg font-medium">QR Code</h3>
-        <div className="bg-white p-4 rounded-lg">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
           <CodeRenderer userId={userId} type="qr" />
         </div>
       </div>
-      <div className="space-y-2">
+      
+      <div className="space-y-4">
         <h3 className="text-lg font-medium">Code-barres</h3>
-        <div className="bg-white p-4 rounded-lg">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
           <CodeRenderer userId={userId} type="barcode" />
         </div>
       </div>
+      
       <Button 
         variant="outline" 
-        size="sm" 
+        size="lg" 
         onClick={handleDownload}
         className="w-full"
       >
