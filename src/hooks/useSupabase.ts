@@ -24,7 +24,6 @@ const setupRealtimeSubscription = (
       (payload) => {
         queryClient.invalidateQueries({ queryKey });
         
-        // Show toast notifications for changes
         const eventType = payload.eventType;
         switch (eventType) {
           case 'INSERT':
@@ -39,17 +38,9 @@ const setupRealtimeSubscription = (
         }
       }
     )
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log(`Realtime subscription active for ${table}`);
-      } else if (status === 'CHANNEL_ERROR') {
-        console.error(`Error in realtime subscription for ${table}`);
-        toast.error(`Erreur de connexion pour ${table}`);
-      }
-    });
+    .subscribe();
 
   return () => {
-    console.log(`Cleaning up realtime subscription for ${table}`);
     channel.unsubscribe();
   };
 };
@@ -100,7 +91,8 @@ export const useUsers = () => {
         throw error;
       }
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });

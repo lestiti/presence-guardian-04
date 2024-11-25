@@ -40,6 +40,16 @@ export const useCreateUser = () => {
         throw new Error("Données utilisateur invalides");
       }
 
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("phone", userData.phone.trim())
+        .single();
+
+      if (existingUser) {
+        throw new Error("Un utilisateur avec ce numéro de téléphone existe déjà");
+      }
+
       const { data, error } = await supabase
         .from("users")
         .insert({
@@ -81,6 +91,17 @@ export const useUpdateUser = () => {
         throw new Error("Données utilisateur invalides");
       }
 
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("phone", userData.phone.trim())
+        .neq("id", id)
+        .single();
+
+      if (existingUser) {
+        throw new Error("Un utilisateur avec ce numéro de téléphone existe déjà");
+      }
+
       const { data, error } = await supabase
         .from("users")
         .update({
@@ -95,9 +116,6 @@ export const useUpdateUser = () => {
       
       if (error) {
         console.error("Error updating user:", error);
-        if (error.code === '23505') {
-          throw new Error("Un utilisateur avec ce numéro de téléphone existe déjà");
-        }
         throw new Error("Erreur lors de la modification de l'utilisateur");
       }
 
