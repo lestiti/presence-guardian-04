@@ -13,7 +13,7 @@ import { SynodsList } from "@/components/synods/SynodsList";
 
 const Synods = () => {
   const { role } = useAccess();
-  const { synods, fetchSynods } = useSynodStore();
+  const { synods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
   const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -43,6 +43,41 @@ const Synods = () => {
       loadData();
     }
   }, [role, fetchSynods]);
+
+  const handleSave = async () => {
+    try {
+      if (selectedSynod) {
+        await updateSynod(selectedSynod.id, formData);
+      } else {
+        await addSynod(formData);
+      }
+      setShowDialog(false);
+      setSelectedSynod(null);
+      setFormData({
+        name: "",
+        description: "",
+        color: "#10B981",
+      });
+    } catch (error) {
+      console.error('Error saving synod:', error);
+      toast.error("Erreur lors de la sauvegarde du synode");
+      throw error;
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (selectedSynod) {
+        await deleteSynod(selectedSynod.id);
+        setShowDeleteDialog(false);
+        setSelectedSynod(null);
+      }
+    } catch (error) {
+      console.error('Error deleting synod:', error);
+      toast.error("Erreur lors de la suppression du synode");
+      throw error;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -84,6 +119,8 @@ const Synods = () => {
         selectedSynod={selectedSynod}
         formData={formData}
         setFormData={setFormData}
+        onSave={handleSave}
+        onDelete={handleDelete}
       />
 
       <AccessCodeDialog
