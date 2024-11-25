@@ -11,12 +11,16 @@ interface CodeRendererProps {
 export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
   if (type === 'qr') {
     return (
-      <div className="flex justify-center items-center bg-white rounded-lg p-4">
+      <div className="flex justify-center items-center bg-white rounded-lg p-8">
         <QRCode
           value={generateUniqueQRCode(userId)}
-          size={128}
-          level="H"
-          className="h-32 w-32"
+          size={200}
+          level="M"
+          className="h-48 w-48"
+          style={{ 
+            padding: '1rem',
+            backgroundColor: 'white'
+          }}
         />
       </div>
     );
