@@ -19,7 +19,7 @@ interface SynodDialogsProps {
   setShowDeleteDialog: (show: boolean) => void;
   selectedSynod: Synod | null;
   formData: SynodFormData;
-  setFormData: (data: SynodFormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<SynodFormData>>;
   onSave: () => Promise<void>;
   onDelete: () => Promise<void>;
 }

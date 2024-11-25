@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 interface SynodFormProps {
   formData: SynodFormData;
-  setFormData: (data: SynodFormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<SynodFormData>>;
   onSave: () => Promise<void>;
   onCancel: () => void;
   isEdit: boolean;
@@ -64,7 +64,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
   };
 
   const updateFormData = (updates: Partial<SynodFormData>) => {
-    setFormData({ ...formData, ...updates });
+    setFormData(prev => ({ ...prev, ...updates }));
     setHasChanges(true);
   };
 
