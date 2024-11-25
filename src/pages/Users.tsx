@@ -19,7 +19,7 @@ const ITEMS_PER_PAGE = 10;
 
 const Users = () => {
   const { synods } = useSynodStore();
-  const { data: users = [], isLoading, error } = useUsers();
+  const { data: users = [], isLoading, error, refetch } = useUsers();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
@@ -31,23 +31,23 @@ const Users = () => {
   const [synodFilter, setSynodFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Dialog states
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCodesDialog, setShowCodesDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState<Partial<UserData>>({});
 
-  // Setup real-time subscription
   useEffect(() => {
     const channel = supabase
       .channel('users_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'users' },
-        (payload) => {
+        async (payload) => {
           const eventType = payload.eventType;
           const newRecord = payload.new as UserData;
           const oldRecord = payload.old as UserData;
+
+          await refetch();
 
           switch (eventType) {
             case 'INSERT':
@@ -67,7 +67,7 @@ const Users = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refetch]);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <Error message="Erreur lors du chargement des utilisateurs" />;
@@ -111,6 +111,11 @@ const Users = () => {
 
   const handleSaveUser = async () => {
     try {
+      if (!formData.name?.trim() || !formData.phone?.trim() || !formData.role || !formData.synod_id) {
+        toast.error("Veuillez remplir tous les champs obligatoires");
+        return;
+      }
+
       if (selectedUser) {
         await updateUser.mutateAsync({
           id: selectedUser.id,
@@ -120,6 +125,7 @@ const Users = () => {
         await createUser.mutateAsync(formData as UserData);
       }
       setShowUserDialog(false);
+      setFormData({});
     } catch (error) {
       console.error("Error saving user:", error);
       toast.error("Erreur lors de l'enregistrement");
@@ -132,6 +138,7 @@ const Users = () => {
     try {
       await deleteUser.mutateAsync(selectedUser.id);
       setShowDeleteDialog(false);
+      setSelectedUser(null);
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Erreur lors de la suppression");
@@ -140,7 +147,7 @@ const Users = () => {
 
   const getSynodName = (synodId: string) => {
     const synod = synods.find(s => s.id === synodId);
-    return synod ? synod.name : synodId;
+    return synod ? synod.name : "Synode inconnu";
   };
 
   return (

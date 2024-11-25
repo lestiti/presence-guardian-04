@@ -40,15 +40,20 @@ export const UserDialogs = ({
   setShowDeleteDialog,
   setShowCodesDialog,
 }: UserDialogsProps) => {
+  const handleCloseUserDialog = () => {
+    setFormData({});
+    setShowUserDialog(false);
+  };
+
   return (
     <>
-      <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
+      <Dialog open={showUserDialog} onOpenChange={handleCloseUserDialog}>
         <DialogContent>
           <UserForm
             formData={formData}
             setFormData={setFormData}
             onSave={onSaveUser}
-            onCancel={() => setShowUserDialog(false)}
+            onCancel={handleCloseUserDialog}
             isEdit={!!selectedUser}
           />
         </DialogContent>

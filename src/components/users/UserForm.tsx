@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
-import { isValidMadagascarPhone, formatPhoneNumber } from "@/utils/phoneValidation";
+import { isValidMadagascarPhone } from "@/utils/phoneValidation";
 import { toast } from "sonner";
 
 interface UserFormProps {
@@ -50,6 +50,8 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
 
     if (!formData.phone?.trim()) {
       newErrors.phone = "Le numéro de téléphone est requis";
+    } else if (!isValidMadagascarPhone(formData.phone)) {
+      newErrors.phone = "Le numéro de téléphone n'est pas valide";
     }
 
     if (!formData.role) {
@@ -65,7 +67,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const phoneValue = e.target.value;
+    const phoneValue = e.target.value.replace(/[^0-9+]/g, '');
     setFormData({ ...formData, phone: phoneValue });
     setHasChanges(true);
     if (errors.phone) {
@@ -119,6 +121,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
             type="tel"
             value={formData.phone || ""}
             onChange={handlePhoneChange}
+            placeholder="+261 34 00 000 00"
             className={errors.phone ? "border-destructive" : ""}
           />
           {errors.phone && (
@@ -179,7 +182,7 @@ export const UserForm = ({ formData, setFormData, onSave, onCancel, isEdit }: Us
         <Button variant="outline" onClick={onCancel}>
           Annuler
         </Button>
-        <Button onClick={handleSubmit}>
+        <Button onClick={handleSubmit} disabled={!hasChanges}>
           {isEdit ? "Modifier" : "Créer"}
         </Button>
       </DialogFooter>
