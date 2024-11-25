@@ -11,19 +11,16 @@ import Settings from "@/pages/Settings";
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route element={<Layout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/synods" element={<Synods />} />
-            <Route path="/attendance" element={<Attendance />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-        </Layout>}>
-        </Route>
-      </Routes>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/synods" element={<Synods />} />
+          <Route path="/attendance" element={<Attendance />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Layout>
       <Toaster />
     </Router>
   );
