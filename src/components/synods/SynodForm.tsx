@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogFooter } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SynodFormData } from "@/types/synod";
 import { toast } from "sonner";
 
@@ -16,16 +16,37 @@ interface SynodFormProps {
 
 export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: SynodFormProps) => {
   const [hasChanges, setHasChanges] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    // Reset form state when opening/closing
+    return () => {
+      setHasChanges(false);
+      setErrors({});
+    };
+  }, []);
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
     if (!formData.name?.trim()) {
-      toast.error("Le nom du synode est requis");
-      return;
+      newErrors.name = "Le nom du synode est requis";
     }
 
     const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
     if (!hexColorRegex.test(formData.color)) {
-      toast.error("La couleur doit être au format hexadécimal (ex: #FF0000)");
+      newErrors.color = "La couleur doit être au format hexadécimal (ex: #FF0000)";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validateForm()) {
+      Object.values(errors).forEach(error => {
+        toast.error(error);
+      });
       return;
     }
 
@@ -47,7 +68,11 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
             id="name"
             value={formData.name}
             onChange={(e) => updateFormData({ name: e.target.value })}
+            className={errors.name ? "border-red-500" : ""}
           />
+          {errors.name && (
+            <span className="text-sm text-red-500">{errors.name}</span>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
@@ -69,7 +94,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
                 const value = e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`;
                 updateFormData({ color: value });
               }}
-              className="font-mono"
+              className={`font-mono ${errors.color ? "border-red-500" : ""}`}
             />
             <div 
               className="w-10 h-10 rounded border"
@@ -77,13 +102,24 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
               aria-label="Aperçu de la couleur"
             />
           </div>
+          {errors.color && (
+            <span className="text-sm text-red-500">{errors.color}</span>
+          )}
         </div>
       </div>
       <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>
+        <Button 
+          variant="outline" 
+          onClick={onCancel}
+          type="button"
+        >
           Annuler
         </Button>
-        <Button onClick={handleSubmit}>
+        <Button 
+          onClick={handleSubmit}
+          type="submit"
+          disabled={!hasChanges}
+        >
           {isEdit ? "Modifier" : "Créer"}
         </Button>
       </DialogFooter>

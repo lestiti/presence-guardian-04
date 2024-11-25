@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Grid } from "lucide-react";
+import { Grid, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Synod, SynodFormData } from "@/types/synod";
 import { AccessCodeDialog } from "@/components/access/AccessCodeDialog";
@@ -12,6 +12,7 @@ import { SynodDialogs } from "@/components/synods/SynodDialogs";
 const Synods = () => {
   const { role } = useAccess();
   const { synods, fetchSynods, addSynod, updateSynod, deleteSynod } = useSynodStore();
+  const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
@@ -23,10 +24,21 @@ const Synods = () => {
   });
 
   useEffect(() => {
+    const loadSynods = async () => {
+      try {
+        await fetchSynods();
+      } catch (error) {
+        console.error('Error fetching synods:', error);
+        toast.error("Erreur lors du chargement des synodes");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (role === 'public') {
       setShowAccessDialog(true);
     }
-    fetchSynods();
+    loadSynods();
   }, [role, fetchSynods]);
 
   const handleNewSynod = () => {
@@ -74,8 +86,10 @@ const Synods = () => {
     try {
       if (selectedSynod) {
         await updateSynod(selectedSynod.id, formData);
+        toast.success("Synode mis à jour avec succès");
       } else {
         await addSynod(formData);
+        toast.success("Synode créé avec succès");
       }
       setShowDialog(false);
       setSelectedSynod(null);
@@ -95,14 +109,23 @@ const Synods = () => {
       await deleteSynod(selectedSynod.id);
       setShowDeleteDialog(false);
       setSelectedSynod(null);
+      toast.success("Synode supprimé avec succès");
     } catch (error) {
       console.error('Error deleting synod:', error);
       toast.error("Erreur lors de la suppression du synode");
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-secondary">Gestion des Synodes</h1>
         <Button 
