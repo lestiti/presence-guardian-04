@@ -23,18 +23,22 @@ export const useAccess = create<AccessState>()(
             .select('role')
             .eq('code', code)
             .eq('is_active', true)
-            .single();
+            .maybeSingle(); // Using maybeSingle() instead of single()
 
-          if (error) throw error;
+          if (error) {
+            console.error('Error checking access code:', error);
+            toast.error('Erreur lors de la vérification du code');
+            return false;
+          }
 
-          if (data) {
-            set({ role: data.role as AccessRole });
-            toast.success('Code d\'accès validé');
-            return true;
+          if (!data) {
+            toast.error('Code d\'accès invalide');
+            return false;
           }
           
-          toast.error('Code d\'accès invalide');
-          return false;
+          set({ role: data.role as AccessRole });
+          toast.success('Code d\'accès validé');
+          return true;
         } catch (error) {
           console.error('Error checking access code:', error);
           toast.error('Erreur lors de la vérification du code');
