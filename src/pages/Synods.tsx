@@ -7,7 +7,7 @@ import { useSynodStore } from "@/stores/synodStore";
 import { SynodDialogs } from "@/components/synods/SynodDialogs";
 import { SynodsHeader } from "@/components/synods/SynodsHeader";
 import { SynodsList } from "@/components/synods/SynodsList";
-import { supabase } from "@/integrations/supabase/client";
+import { SynodFormData } from "@/types/synod";
 
 const Synods = () => {
   const { role, accessCode } = useAccess();
@@ -17,7 +17,7 @@ const Synods = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
   const [selectedSynod, setSelectedSynod] = useState(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SynodFormData>({
     name: "",
     description: "",
     color: "#10B981",
