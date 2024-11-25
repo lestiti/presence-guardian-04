@@ -9,7 +9,7 @@ import { toast } from "sonner";
 interface SynodFormProps {
   formData: SynodFormData;
   setFormData: (data: SynodFormData) => void;
-  onSave: () => void;
+  onSave: () => Promise<void>;
   onCancel: () => void;
   isEdit: boolean;
 }
@@ -17,9 +17,9 @@ interface SynodFormProps {
 export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: SynodFormProps) => {
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Reset form state when opening/closing
     return () => {
       setHasChanges(false);
       setErrors({});
@@ -42,7 +42,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       Object.values(errors).forEach(error => {
         toast.error(error);
@@ -50,8 +50,17 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
       return;
     }
 
-    onSave();
-    setHasChanges(false);
+    try {
+      setIsSubmitting(true);
+      await onSave();
+      setHasChanges(false);
+      toast.success(isEdit ? "Synode modifié avec succès" : "Synode créé avec succès");
+    } catch (error) {
+      console.error("Error saving synod:", error);
+      toast.error("Une erreur est survenue lors de la sauvegarde");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const updateFormData = (updates: Partial<SynodFormData>) => {
@@ -69,6 +78,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
             value={formData.name}
             onChange={(e) => updateFormData({ name: e.target.value })}
             className={errors.name ? "border-red-500" : ""}
+            disabled={isSubmitting}
           />
           {errors.name && (
             <span className="text-sm text-red-500">{errors.name}</span>
@@ -80,6 +90,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
             id="description"
             value={formData.description || ""}
             onChange={(e) => updateFormData({ description: e.target.value })}
+            disabled={isSubmitting}
           />
         </div>
         <div className="space-y-2">
@@ -95,6 +106,7 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
                 updateFormData({ color: value });
               }}
               className={`font-mono ${errors.color ? "border-red-500" : ""}`}
+              disabled={isSubmitting}
             />
             <div 
               className="w-10 h-10 rounded border"
@@ -112,15 +124,16 @@ export const SynodForm = ({ formData, setFormData, onSave, onCancel, isEdit }: S
           variant="outline" 
           onClick={onCancel}
           type="button"
+          disabled={isSubmitting}
         >
           Annuler
         </Button>
         <Button 
           onClick={handleSubmit}
           type="submit"
-          disabled={!hasChanges}
+          disabled={!hasChanges || isSubmitting}
         >
-          {isEdit ? "Modifier" : "Créer"}
+          {isSubmitting ? "Enregistrement..." : isEdit ? "Modifier" : "Créer"}
         </Button>
       </DialogFooter>
     </div>

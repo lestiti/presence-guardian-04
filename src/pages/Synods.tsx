@@ -83,20 +83,20 @@ const Synods = () => {
       toast.error("Accès non autorisé");
       return;
     }
+
     try {
       if (selectedSynod) {
         await updateSynod(selectedSynod.id, formData);
-        toast.success("Synode mis à jour avec succès");
       } else {
         await addSynod(formData);
-        toast.success("Synode créé avec succès");
       }
       setShowDialog(false);
       setSelectedSynod(null);
       setFormData({ name: "", description: "", color: "#10B981" });
     } catch (error) {
       console.error('Error saving synod:', error);
-      toast.error("Erreur lors de la sauvegarde du synode");
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la sauvegarde du synode";
+      toast.error(errorMessage);
     }
   };
 
@@ -109,7 +109,6 @@ const Synods = () => {
       await deleteSynod(selectedSynod.id);
       setShowDeleteDialog(false);
       setSelectedSynod(null);
-      toast.success("Synode supprimé avec succès");
     } catch (error) {
       console.error('Error deleting synod:', error);
       toast.error("Erreur lors de la suppression du synode");
