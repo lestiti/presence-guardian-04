@@ -10,6 +10,8 @@ const generateImage = async (element: HTMLElement): Promise<string> => {
     quality: 0.95,
     pixelRatio: 2,
     backgroundColor: '#ffffff',
+    width: 400,
+    height: 300,
     style: {
       margin: '20px',
       padding: '20px',
@@ -18,7 +20,7 @@ const generateImage = async (element: HTMLElement): Promise<string> => {
   };
 
   // Wait for any potential rendering
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   try {
     return await toPng(element, options);
@@ -36,11 +38,13 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
     // Style containers
     [qrContainer, barcodeContainer].forEach(container => {
       container.style.cssText = `
-        display: inline-block;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         background: white;
-        padding: 20px;
-        margin: 10px;
-        width: 300px;
+        padding: 40px;
+        margin: 20px;
+        width: 400px;
         height: 300px;
       `;
       document.body.appendChild(container);
@@ -56,6 +60,7 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
         style: {
           width: '100%',
           height: 'auto',
+          maxWidth: '256px',
           padding: '20px',
           backgroundColor: 'white'
         }
@@ -74,12 +79,13 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
         format: "CODE128",
         textAlign: "center",
         textPosition: "bottom",
-        textMargin: 8
+        textMargin: 8,
+        margin: 20
       })
     );
 
     // Wait for rendering and generate images
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 500));
     const [qrImage, barcodeImage] = await Promise.all([
       generateImage(qrContainer),
       generateImage(barcodeContainer)

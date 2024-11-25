@@ -32,7 +32,7 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
     <div className="flex justify-center items-center bg-white rounded-lg p-4">
       <ReactBarcode
         value={generateUniqueBarcode(userId)}
-        height={50}
+        height={100}
         width={2}
         displayValue={true}
         background="#ffffff"
@@ -40,6 +40,7 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
         textAlign="center"
         textPosition="bottom"
         textMargin={8}
+        margin={20}
       />
     </div>
   );
