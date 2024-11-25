@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useSynodStore } from "@/stores/synodStore";
 import { SynodCard } from "@/components/synods/SynodCard";
 import { SynodDialogs } from "@/components/synods/SynodDialogs";
+import { supabase } from "@/integrations/supabase/client";
 
 const Synods = () => {
   const { role } = useAccess();
@@ -35,13 +36,27 @@ const Synods = () => {
       }
     };
 
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) {
+        setShowAccessDialog(true);
+      }
+    };
+
     if (role === 'public') {
-      setShowAccessDialog(true);
+      checkSession();
     }
     loadSynods();
   }, [role, fetchSynods]);
 
-  const handleNewSynod = () => {
+  const handleNewSynod = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("Vous devez être connecté pour créer un synode");
+      setShowAccessDialog(true);
+      return;
+    }
+
     if (role !== 'super_admin') {
       toast.error("Accès non autorisé");
       return;
@@ -55,7 +70,14 @@ const Synods = () => {
     setShowDialog(true);
   };
 
-  const handleEditSynod = (synod: Synod) => {
+  const handleEditSynod = async (synod: Synod) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("Vous devez être connecté pour modifier un synode");
+      setShowAccessDialog(true);
+      return;
+    }
+
     if (role !== 'super_admin') {
       toast.error("Accès non autorisé");
       return;
@@ -69,7 +91,14 @@ const Synods = () => {
     setShowDialog(true);
   };
 
-  const handleDeleteSynod = (synod: Synod) => {
+  const handleDeleteSynod = async (synod: Synod) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("Vous devez être connecté pour supprimer un synode");
+      setShowAccessDialog(true);
+      return;
+    }
+
     if (role !== 'super_admin') {
       toast.error("Accès non autorisé");
       return;
@@ -79,6 +108,13 @@ const Synods = () => {
   };
 
   const handleSaveSynod = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("Vous devez être connecté pour cette action");
+      setShowAccessDialog(true);
+      return;
+    }
+
     if (role !== 'super_admin') {
       toast.error("Accès non autorisé");
       return;
@@ -101,6 +137,13 @@ const Synods = () => {
   };
 
   const handleConfirmDelete = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("Vous devez être connecté pour cette action");
+      setShowAccessDialog(true);
+      return;
+    }
+
     if (role !== 'super_admin' || !selectedSynod) {
       toast.error("Accès non autorisé");
       return;

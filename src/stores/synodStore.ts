@@ -27,58 +27,71 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
         .order('name');
       
       if (error) throw error;
-
       set({ synods: data || [] });
     } catch (error) {
       console.error('Error fetching synods:', error);
+      toast.error("Erreur lors du chargement des synodes");
       throw error;
     }
   },
 
   addSynod: async (synod) => {
     try {
-      if (!synod.name?.trim()) {
-        throw new Error("Le nom du synode est requis");
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        toast.error("Vous devez être connecté pour créer un synode");
+        throw new Error("Authentication required");
       }
 
       const { data, error } = await supabase
         .from('synods')
-        .insert([{
-          name: synod.name.trim(),
-          description: synod.description?.trim() || null,
-          color: synod.color || '#10B981',
-        }])
+        .insert([synod])
         .select()
         .single();
-
+      
       if (error) throw error;
-      if (!data) throw new Error("Aucune donnée retournée après l'insertion");
+      if (!data) throw new Error("No data returned from insert");
 
       set((state) => ({
         synods: [...state.synods, data]
       }));
+
+      toast.success("Synode créé avec succès");
     } catch (error) {
       console.error('Error adding synod:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erreur lors de la création du synode");
+      }
       throw error;
     }
   },
 
   updateSynod: async (id, synod) => {
     try {
-      if (synod.name && !synod.name.trim()) {
-        throw new Error("Le nom du synode est requis");
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        toast.error("Vous devez être connecté pour modifier un synode");
+        throw new Error("Authentication required");
       }
 
       const { error } = await supabase
         .from('synods')
         .update({
-          name: synod.name?.trim(),
-          description: synod.description?.trim() || null,
-          color: synod.color,
+          ...synod,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id);
-
+      
       if (error) throw error;
 
       set((state) => ({
@@ -86,26 +99,42 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
           s.id === id ? { ...s, ...synod, updated_at: new Date().toISOString() } : s
         )
       }));
+
+      toast.success("Synode modifié avec succès");
     } catch (error) {
       console.error('Error updating synod:', error);
+      toast.error("Erreur lors de la modification du synode");
       throw error;
     }
   },
 
   deleteSynod: async (id) => {
     try {
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        toast.error("Vous devez être connecté pour supprimer un synode");
+        throw new Error("Authentication required");
+      }
+
       const { error } = await supabase
         .from('synods')
         .delete()
         .eq('id', id);
-
+      
       if (error) throw error;
 
       set((state) => ({
         synods: state.synods.filter((s) => s.id !== id)
       }));
+
+      toast.success("Synode supprimé avec succès");
     } catch (error) {
       console.error('Error deleting synod:', error);
+      toast.error("Erreur lors de la suppression du synode");
       throw error;
     }
   },
@@ -131,6 +160,7 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       }));
     } catch (error) {
       console.error('Error updating member count:', error);
+      toast.error("Erreur lors de la mise à jour du nombre de membres");
       throw error;
     }
   },
