@@ -40,10 +40,6 @@ export const UserForm = ({
     setHasChanges(true);
   };
 
-  const handleFormSubmit = async () => {
-    await handleSubmit(formData);
-  };
-
   return (
     <div className="space-y-4">
       <div className="space-y-4 py-4">
@@ -108,7 +104,7 @@ export const UserForm = ({
           Annuler
         </Button>
         <Button 
-          onClick={handleFormSubmit}
+          onClick={() => handleSubmit(formData)}
           type="submit"
           disabled={!hasChanges || isSubmitting}
         >

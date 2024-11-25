@@ -17,3 +17,10 @@ export interface UserData {
 export const isValidUserRole = (role: string): role is UserRole => {
   return ["MPIOMANA", "MPIANDRY", "MPAMPIANATRA", "IRAKA"].includes(role);
 };
+
+export interface CreateUserData {
+  name: string;
+  phone: string;
+  role: UserRole;
+  synod_id: string;
+}
