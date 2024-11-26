@@ -13,7 +13,7 @@ interface RoleFilterProps {
 
 export const RoleFilter = ({ value, onChange }: RoleFilterProps) => {
   return (
-    <Select value={value || "all"} onValueChange={onChange}>
+    <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-[180px] bg-white/80 backdrop-blur-sm border-white/20">
         <SelectValue placeholder="Filtrer par rôle" />
       </SelectTrigger>

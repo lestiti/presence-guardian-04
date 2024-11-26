@@ -38,6 +38,12 @@ export const useOptimizedUsers = ({ page, pageSize, searchTerm, filters, sortBy 
       if (filters?.synodId && filters.synodId !== 'all') {
         query = query.eq('synod_id', filters.synodId);
       }
+      if (filters?.dateRange?.start) {
+        query = query.gte('created_at', filters.dateRange.start.toISOString());
+      }
+      if (filters?.dateRange?.end) {
+        query = query.lte('created_at', filters.dateRange.end.toISOString());
+      }
 
       // Apply sorting
       if (sortBy) {
