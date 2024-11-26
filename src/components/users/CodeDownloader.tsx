@@ -28,7 +28,16 @@ export const CodeDownloader = ({ userId, userName, synodId }: CodeDownloaderProp
       zip.file(`${userName}-barcode.png`, barcodeImage.split('base64,')[1], { base64: true });
 
       const content = await zip.generateAsync({ type: "blob" });
-      await downloadZipFile(content, `${userName}-codes.zip`);
+      
+      // Create and trigger download
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${userName}-codes.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       toast.success("Codes téléchargés avec succès", { id: toastId });
     } catch (error) {
