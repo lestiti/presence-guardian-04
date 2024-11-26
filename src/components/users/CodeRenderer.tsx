@@ -16,7 +16,7 @@ export const CodeRenderer = ({ userId, type, synodId }: CodeRendererProps) => {
 
   if (type === 'qr') {
     return (
-      <div className="flex justify-center items-center bg-white rounded-lg p-8">
+      <div className="flex justify-center items-center bg-white p-4">
         <QRCode
           value={generateUniqueQRCode(userId)}
           size={200}
@@ -26,7 +26,6 @@ export const CodeRenderer = ({ userId, type, synodId }: CodeRendererProps) => {
             height: "auto",
             maxWidth: "100%",
             width: "100%",
-            padding: '1rem',
             backgroundColor: 'white'
           }}
         />
@@ -35,7 +34,7 @@ export const CodeRenderer = ({ userId, type, synodId }: CodeRendererProps) => {
   }
 
   return (
-    <div className="flex justify-center items-center bg-white rounded-lg p-4">
+    <div className="flex justify-center items-center bg-white p-4">
       <ReactBarcode
         value={generateUniqueBarcode(userId)}
         height={100}
