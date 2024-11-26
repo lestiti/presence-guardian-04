@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
+import { useSynodStore } from "@/stores/synodStore";
 
 interface SynodData {
   name: string;
@@ -13,6 +14,7 @@ interface SynodData {
 
 export const SynodExcelUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
+  const { fetchSynods } = useSynodStore();
 
   const processExcelFile = async (file: File) => {
     try {
@@ -20,6 +22,12 @@ export const SynodExcelUpload = () => {
       const workbook = XLSX.read(data);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      if (!jsonData || jsonData.length === 0) {
+        throw new Error("Le fichier Excel est vide ou mal formaté");
+      }
+
+      console.log("Données Excel extraites:", jsonData);
 
       const synods: SynodData[] = jsonData.map((row: any) => ({
         name: row.name || row.Name || row.NOM || "",
@@ -37,6 +45,7 @@ export const SynodExcelUpload = () => {
   const uploadFile = async (file: File) => {
     try {
       setIsUploading(true);
+      toast.loading("Import des synodes en cours...");
 
       // Upload file to Supabase Storage
       const fileName = `${Date.now()}_${file.name}`;
@@ -50,10 +59,14 @@ export const SynodExcelUpload = () => {
 
       // Process Excel data
       const synods = await processExcelFile(file);
+      let importedCount = 0;
 
       // Insert synods into database
       for (const synod of synods) {
-        if (!synod.name) continue;
+        if (!synod.name) {
+          console.warn("Synod sans nom trouvé, ignoré");
+          continue;
+        }
 
         const { error: insertError } = await supabase
           .from("synods")
@@ -62,10 +75,15 @@ export const SynodExcelUpload = () => {
         if (insertError) {
           console.error("Error inserting synod:", insertError);
           toast.error(`Erreur lors de l'ajout du synode: ${synod.name}`);
+        } else {
+          importedCount++;
         }
       }
 
-      toast.success("Import des synodes réussi");
+      // Refresh the synods list
+      await fetchSynods();
+
+      toast.success(`Import réussi: ${importedCount} synodes importés`);
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error("Erreur lors de l'import du fichier");
@@ -84,6 +102,7 @@ export const SynodExcelUpload = () => {
     }
 
     await uploadFile(file);
+    e.target.value = ''; // Reset input after upload
   };
 
   return (
