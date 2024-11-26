@@ -51,7 +51,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      // Get the access code from the store
       const { accessCode } = useAccess.getState();
       
       if (!accessCode) {
@@ -66,7 +65,7 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
       
       if (error) {
         if (error.code === '42501') {
-          toast.error("Vous n'avez pas les permissions nécessaires. Assurez-vous d'être super_admin.");
+          toast.error("Vous n'avez pas les permissions nécessaires");
           set({ error: error.message, isLoading: false });
           return;
         }
@@ -94,7 +93,6 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      // Get the access code from the store
       const { accessCode } = useAccess.getState();
       
       if (!accessCode) {
@@ -137,11 +135,26 @@ export const useSynodStore = create<SynodStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      // Get the access code from the store
       const { accessCode } = useAccess.getState();
       
       if (!accessCode) {
         throw new Error("Code d'accès requis pour cette opération");
+      }
+
+      // Check if there are any users associated with this synod
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('synod_id', id);
+
+      if (usersError) {
+        throw usersError;
+      }
+
+      if (users && users.length > 0) {
+        toast.error("Impossible de supprimer ce synode car il contient encore des membres");
+        set({ isLoading: false });
+        return;
       }
 
       const { error } = await supabase
