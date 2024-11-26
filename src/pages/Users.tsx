@@ -1,91 +1,53 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { UsersHeader } from "@/components/users/UsersHeader";
 import { UsersFilters } from "@/components/users/UsersFilters";
 import { UsersTable } from "@/components/users/UsersTable";
 import { UserDialogs } from "@/components/users/UserDialogs";
 import { UserStats } from "@/components/users/UserStats";
-import { UserData } from "@/types/user";
+import { AdvancedSearch } from "@/components/users/AdvancedSearch";
+import { useOptimizedUsers } from "@/hooks/useOptimizedQueries";
 import { useSynodStore } from "@/stores/synodStore";
-import { useUsers } from "@/hooks/useSupabase";
 import { useUserActions } from "@/hooks/useUserActions";
 import { useCreateUser, useUpdateUser, useDeleteUser } from "@/hooks/useUserMutations";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { Error } from "@/components/ui/error";
-import { useDebounce } from "@/hooks/useDebounce";
-import { supabase } from "@/integrations/supabase/client";
 
 const ITEMS_PER_PAGE = 10;
 
 const Users = () => {
   const { synods } = useSynodStore();
-  const { data: users = [], isLoading, error, refetch } = useUsers();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useState({
+    searchTerm: "",
+    filters: {
+      role: "all",
+      synodId: "all",
+    },
+    sortBy: {
+      column: "created_at",
+      direction: "desc" as const,
+    },
+  });
+
+  const { data, isLoading, error } = useOptimizedUsers({
+    page: currentPage,
+    pageSize: ITEMS_PER_PAGE,
+    searchTerm: searchParams.searchTerm,
+    filters: searchParams.filters,
+    sortBy: searchParams.sortBy,
+  });
+
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
   const { handleImportUsers } = useUserActions();
-  
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [synodFilter, setSynodFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  
+
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCodesDialog, setShowCodesDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
-  const [formData, setFormData] = useState<Partial<UserData>>({});
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('users_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'users' },
-        async (payload) => {
-          const eventType = payload.eventType;
-          const newRecord = payload.new as UserData;
-          const oldRecord = payload.old as UserData;
-
-          await refetch();
-
-          switch (eventType) {
-            case 'INSERT':
-              toast.success(`Nouvel utilisateur ajouté: ${newRecord.name}`);
-              break;
-            case 'UPDATE':
-              toast.info(`Utilisateur modifié: ${newRecord.name}`);
-              break;
-            case 'DELETE':
-              toast.warning(`Utilisateur supprimé: ${oldRecord.name}`);
-              break;
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refetch]);
-
-  if (isLoading) return <LoadingSpinner />;
-  if (error) return <Error message="Erreur lors du chargement des utilisateurs" />;
-
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = !debouncedSearch || 
-      user.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      user.phone.toLowerCase().includes(debouncedSearch.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesSynod = synodFilter === "all" || user.synod_id === synodFilter;
-    return matchesSearch && matchesRole && matchesSynod;
-  });
-
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [formData, setFormData] = useState({});
 
   const handleNewUser = () => {
     setSelectedUser(null);
@@ -93,18 +55,18 @@ const Users = () => {
     setShowUserDialog(true);
   };
 
-  const handleEditUser = (user: UserData) => {
+  const handleEditUser = (user) => {
     setSelectedUser(user);
     setFormData(user);
     setShowUserDialog(true);
   };
 
-  const handleDeleteUser = (user: UserData) => {
+  const handleDeleteUser = (user) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);
   };
 
-  const handleGenerateCodes = (user: UserData) => {
+  const handleGenerateCodes = (user) => {
     setSelectedUser(user);
     setShowCodesDialog(true);
   };
@@ -122,7 +84,7 @@ const Users = () => {
           ...formData
         });
       } else {
-        await createUser.mutateAsync(formData as UserData);
+        await createUser.mutateAsync(formData);
       }
       setShowUserDialog(false);
       setFormData({});
@@ -134,7 +96,7 @@ const Users = () => {
 
   const handleConfirmDelete = async () => {
     if (!selectedUser) return;
-    
+
     try {
       await deleteUser.mutateAsync(selectedUser.id);
       setShowDeleteDialog(false);
@@ -145,40 +107,70 @@ const Users = () => {
     }
   };
 
-  const getSynodName = (synodId: string) => {
-    const synod = synods.find(s => s.id === synodId);
-    return synod ? synod.name : "Synode inconnu";
+  const handleAdvancedSearch = (params) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      searchTerm: params.searchTerm,
+      filters: {
+        ...prev.filters,
+        role: params.role || "all",
+        synodId: params.synodId || "all",
+        dateRange: params.dateRange,
+      },
+    }));
+    setCurrentPage(1);
   };
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <Error message="Erreur lors du chargement des utilisateurs" />;
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <UserStats users={users} synods={synods} />
+      <UserStats users={data?.users || []} synods={synods} />
 
-      <UsersHeader
-        users={users}
-        onImport={handleImportUsers}
-        onNewUser={handleNewUser}
-        existingSynods={synods.map(s => s.id)}
-      />
+      <div className="flex justify-between items-center">
+        <UsersHeader
+          users={data?.users || []}
+          onImport={handleImportUsers}
+          onNewUser={handleNewUser}
+          existingSynods={synods.map(s => s.id)}
+        />
+        <AdvancedSearch onSearch={handleAdvancedSearch} />
+      </div>
 
       <UsersFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        roleFilter={roleFilter}
-        onRoleFilterChange={setRoleFilter}
-        synodFilter={synodFilter}
-        onSynodFilterChange={setSynodFilter}
+        searchTerm={searchParams.searchTerm}
+        onSearchChange={(value) =>
+          setSearchParams((prev) => ({ ...prev, searchTerm: value }))
+        }
+        roleFilter={searchParams.filters.role}
+        onRoleFilterChange={(value) =>
+          setSearchParams((prev) => ({
+            ...prev,
+            filters: { ...prev.filters, role: value },
+          }))
+        }
+        synodFilter={searchParams.filters.synodId}
+        onSynodFilterChange={(value) =>
+          setSearchParams((prev) => ({
+            ...prev,
+            filters: { ...prev.filters, synodId: value },
+          }))
+        }
       />
 
       <UsersTable
-        users={paginatedUsers}
+        users={data?.users || []}
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={Math.ceil((data?.totalCount || 0) / ITEMS_PER_PAGE)}
         onPageChange={setCurrentPage}
         onGenerateCodes={handleGenerateCodes}
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUser}
-        getSynodName={getSynodName}
+        getSynodName={(synodId) => {
+          const synod = synods.find((s) => s.id === synodId);
+          return synod ? synod.name : "Synode inconnu";
+        }}
       />
 
       <UserDialogs
