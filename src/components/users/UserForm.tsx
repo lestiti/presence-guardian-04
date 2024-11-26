@@ -3,7 +3,6 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { UserFormProps } from "@/types/userTypes";
 import { SynodSelect } from "./SynodSelect";
-import { FormField } from "./FormField";
 import {
   Select,
   SelectContent,
@@ -12,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUserForm } from "@/hooks/useUserForm";
+import { FormField } from "./FormField";
 
 export const UserForm = ({ 
   formData, 
@@ -64,7 +64,7 @@ export const UserForm = ({
 
         <div className="space-y-2">
           <Select
-            value={formData.role}
+            value={formData.role || "MPIANDRY"}
             onValueChange={(value) => updateField('role', value)}
           >
             <SelectTrigger className={errors.role ? "border-destructive" : ""}>
