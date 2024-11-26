@@ -12,6 +12,7 @@ import { useCreateUser, useUpdateUser, useDeleteUser } from "@/hooks/useUserMuta
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { Error } from "@/components/ui/error";
+import { UserData } from "@/types/user";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -46,8 +47,8 @@ const Users = () => {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCodesDialog, setShowCodesDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [formData, setFormData] = useState({});
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [formData, setFormData] = useState<Partial<UserData>>({});
 
   const handleNewUser = () => {
     setSelectedUser(null);
@@ -55,18 +56,18 @@ const Users = () => {
     setShowUserDialog(true);
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = (user: UserData) => {
     setSelectedUser(user);
     setFormData(user);
     setShowUserDialog(true);
   };
 
-  const handleDeleteUser = (user) => {
+  const handleDeleteUser = (user: UserData) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);
   };
 
-  const handleGenerateCodes = (user) => {
+  const handleGenerateCodes = (user: UserData) => {
     setSelectedUser(user);
     setShowCodesDialog(true);
   };
@@ -107,7 +108,7 @@ const Users = () => {
     }
   };
 
-  const handleAdvancedSearch = (params) => {
+  const handleAdvancedSearch = (params: any) => {
     setSearchParams((prev) => ({
       ...prev,
       searchTerm: params.searchTerm,

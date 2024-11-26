@@ -32,10 +32,10 @@ export const useOptimizedUsers = ({ page, pageSize, searchTerm, filters, sortBy 
       }
 
       // Apply filters
-      if (filters?.role) {
+      if (filters?.role && filters.role !== 'all') {
         query = query.eq('role', filters.role);
       }
-      if (filters?.synodId) {
+      if (filters?.synodId && filters.synodId !== 'all') {
         query = query.eq('synod_id', filters.synodId);
       }
 
@@ -63,6 +63,5 @@ export const useOptimizedUsers = ({ page, pageSize, searchTerm, filters, sortBy 
       };
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    keepPreviousData: true,
   });
 };
