@@ -28,7 +28,7 @@ export const useOptimizedUsers = ({ page, pageSize, searchTerm, filters, sortBy 
 
       // Search functionality
       if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%,role.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
       }
 
       // Apply filters
@@ -54,6 +54,7 @@ export const useOptimizedUsers = ({ page, pageSize, searchTerm, filters, sortBy 
       const { data, error, count } = await query;
 
       if (error) {
+        console.error("Error fetching users:", error);
         throw error;
       }
 
