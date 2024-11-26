@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useSynodStore } from "@/stores/synodStore";
+import { generateSynodTemplate } from "@/utils/excelTemplates";
 
 interface SynodData {
   name: string;
@@ -93,7 +94,7 @@ export const SynodExcelUpload = () => {
   };
 
   return (
-    <div className="relative">
+    <div className="flex gap-2">
       <input
         type="file"
         accept=".xlsx,.xls"
@@ -102,6 +103,14 @@ export const SynodExcelUpload = () => {
         id="excel-upload"
         disabled={isUploading}
       />
+      <Button 
+        variant="outline" 
+        onClick={() => generateSynodTemplate()}
+        className="flex items-center gap-2"
+      >
+        <Download className="w-4 h-4" />
+        Télécharger le modèle
+      </Button>
       <Button variant="outline" asChild disabled={isUploading}>
         <label htmlFor="excel-upload" className="cursor-pointer flex items-center">
           {isUploading ? (
