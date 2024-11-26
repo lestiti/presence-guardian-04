@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { CodeRenderer } from "./CodeRenderer";
-import { generateCodeImages } from "@/utils/downloadHelpers";
+import { generateCodeImages, downloadZipFile } from "@/utils/downloadHelpers";
 import { useCallback } from "react";
 
 interface CodeDownloaderProps {
@@ -28,16 +28,7 @@ export const CodeDownloader = ({ userId, userName, synodId }: CodeDownloaderProp
       zip.file(`${userName}-barcode.png`, barcodeImage.split('base64,')[1], { base64: true });
 
       const content = await zip.generateAsync({ type: "blob" });
-      
-      // Create and trigger download
-      const url = window.URL.createObjectURL(content);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${userName}-codes.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadZipFile(content, `${userName}-codes.zip`);
 
       toast.success("Codes téléchargés avec succès", { id: toastId });
     } catch (error) {

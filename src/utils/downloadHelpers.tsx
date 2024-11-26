@@ -7,30 +7,29 @@ import ReactDOMServer from "react-dom/server";
 import { useSynodStore } from "@/stores/synodStore";
 
 const generateImage = async (element: HTMLElement): Promise<string> => {
-  const options = {
-    quality: 0.95,
-    pixelRatio: 2,
-    backgroundColor: '#ffffff',
-    width: 300,
-    height: 300,
-    style: {
-      margin: '20px',
-      padding: '20px',
-      backgroundColor: '#ffffff',
-    }
-  };
-
   try {
-    // Force white background and ensure proper rendering
+    // Ensure the element is properly styled
     element.style.backgroundColor = '#ffffff';
     element.style.display = 'flex';
     element.style.justifyContent = 'center';
     element.style.alignItems = 'center';
+    element.style.padding = '20px';
+    element.style.margin = '20px';
     
-    // Wait a bit for the rendering
+    // Wait for the element to be fully rendered
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    return await toPng(element, options);
+    const dataUrl = await toPng(element, {
+      quality: 0.95,
+      pixelRatio: 2,
+      backgroundColor: '#ffffff',
+      style: {
+        margin: '20px',
+        padding: '20px',
+      }
+    });
+
+    return dataUrl;
   } catch (error) {
     console.error("Erreur lors de la génération de l'image:", error);
     throw error;
@@ -38,47 +37,38 @@ const generateImage = async (element: HTMLElement): Promise<string> => {
 };
 
 export const generateCodeImages = async (userId: string, userName: string, synodId?: string): Promise<{ qrImage: string; barcodeImage: string }> => {
+  // Create containers that will be temporarily added to the document
   const qrContainer = document.createElement('div');
   const barcodeContainer = document.createElement('div');
   
   try {
-    // Get synod color
     const { synods } = useSynodStore.getState();
     const synodColor = synods.find(s => s.id === synodId)?.color || '#000000';
 
-    // Style containers with explicit white background and proper dimensions
-    qrContainer.style.cssText = `
+    // Style containers
+    const containerStyle = `
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      background-color: #ffffff;
+      padding: 20px;
+      margin: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #ffffff;
-      padding: 20px;
       width: 300px;
-      height: 300px;
-      position: fixed;
-      left: -9999px;
     `;
-    
-    barcodeContainer.style.cssText = `
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #ffffff;
-      padding: 20px;
-      width: 300px;
-      height: 150px;
-      position: fixed;
-      left: -9999px;
-    `;
+
+    qrContainer.style.cssText = containerStyle + 'height: 300px;';
+    barcodeContainer.style.cssText = containerStyle + 'height: 150px;';
 
     // Add containers to document body
     document.body.appendChild(qrContainer);
     document.body.appendChild(barcodeContainer);
 
     // Generate QR code
-    const qrValue = generateUniqueQRCode(userId);
     const qrElement = createElement(QRCode, {
-      value: qrValue,
+      value: generateUniqueQRCode(userId),
       size: 256,
       level: "L",
       fgColor: synodColor,
@@ -92,10 +82,9 @@ export const generateCodeImages = async (userId: string, userName: string, synod
     });
     qrContainer.innerHTML = ReactDOMServer.renderToString(qrElement);
 
-    // Generate barcode with specific dimensions matching the preview
-    const barcodeValue = generateUniqueBarcode(userId);
+    // Generate barcode
     const barcodeElement = createElement(ReactBarcode, {
-      value: barcodeValue,
+      value: generateUniqueBarcode(userId),
       height: 80,
       width: 1.5,
       displayValue: true,
@@ -110,7 +99,7 @@ export const generateCodeImages = async (userId: string, userName: string, synod
     });
     barcodeContainer.innerHTML = ReactDOMServer.renderToString(barcodeElement);
 
-    // Generate images with explicit white background
+    // Generate images
     const [qrImage, barcodeImage] = await Promise.all([
       generateImage(qrContainer),
       generateImage(barcodeContainer)
@@ -122,8 +111,8 @@ export const generateCodeImages = async (userId: string, userName: string, synod
     throw error;
   } finally {
     // Clean up
-    if (qrContainer.parentNode) qrContainer.parentNode.removeChild(qrContainer);
-    if (barcodeContainer.parentNode) barcodeContainer.parentNode.removeChild(barcodeContainer);
+    document.body.removeChild(qrContainer);
+    document.body.removeChild(barcodeContainer);
   }
 };
 
