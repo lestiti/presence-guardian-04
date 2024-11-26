@@ -84,7 +84,7 @@ export const UserForm = ({
 
         <div className="space-y-2">
           <SynodSelect
-            value={formData.synod_id}
+            value={formData.synod_id || ""}
             onValueChange={(value) => updateField('synod_id', value)}
             className={errors.synod ? "border-destructive" : ""}
           />
