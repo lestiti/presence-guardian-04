@@ -4,6 +4,7 @@ import ReactBarcode from "react-barcode";
 import { generateUniqueQRCode, generateUniqueBarcode } from "./codeGenerators";
 import { createElement } from 'react';
 import ReactDOMServer from "react-dom/server";
+import { useSynodStore } from "@/stores/synodStore";
 
 const generateImage = async (element: HTMLElement): Promise<string> => {
   const options = {
@@ -36,11 +37,15 @@ const generateImage = async (element: HTMLElement): Promise<string> => {
   }
 };
 
-export const generateCodeImages = async (userId: string, userName: string): Promise<{ qrImage: string; barcodeImage: string }> => {
+export const generateCodeImages = async (userId: string, userName: string, synodId?: string): Promise<{ qrImage: string; barcodeImage: string }> => {
   const qrContainer = document.createElement('div');
   const barcodeContainer = document.createElement('div');
   
   try {
+    // Get synod color
+    const { synods } = useSynodStore.getState();
+    const synodColor = synods.find(s => s.id === synodId)?.color || '#000000';
+
     // Style containers with explicit white background and proper dimensions
     qrContainer.style.cssText = `
       display: flex;
@@ -76,6 +81,7 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
       value: qrValue,
       size: 256,
       level: "L",
+      fgColor: synodColor,
       style: {
         width: '100%',
         height: 'auto',
@@ -94,6 +100,7 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
       width: 1.5,
       displayValue: true,
       background: "#ffffff",
+      lineColor: synodColor,
       format: "CODE128",
       textAlign: "center",
       textPosition: "bottom",

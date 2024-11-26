@@ -3,21 +3,22 @@ import { Download } from "lucide-react";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { CodeRenderer } from "./CodeRenderer";
-import { generateCodeImages, downloadZipFile } from "@/utils/downloadHelpers";
+import { generateCodeImages } from "@/utils/downloadHelpers";
 import { useCallback } from "react";
 
 interface CodeDownloaderProps {
   userId: string;
   userName: string;
+  synodId?: string;
 }
 
-export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
+export const CodeDownloader = ({ userId, userName, synodId }: CodeDownloaderProps) => {
   const handleDownload = useCallback(async () => {
     const toastId = toast.loading("Génération des codes en cours...");
     const zip = new JSZip();
     
     try {
-      const { qrImage, barcodeImage } = await generateCodeImages(userId, userName);
+      const { qrImage, barcodeImage } = await generateCodeImages(userId, userName, synodId);
 
       if (!qrImage || !barcodeImage) {
         throw new Error("Erreur lors de la génération des images");
@@ -34,21 +35,21 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
       console.error("Erreur lors du téléchargement:", error);
       toast.error("Erreur lors du téléchargement des codes", { id: toastId });
     }
-  }, [userId, userName]);
+  }, [userId, userName, synodId]);
 
   return (
     <div className="space-y-8 py-6">
       <div className="space-y-4">
         <h3 className="text-lg font-medium">QR Code</h3>
         <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <CodeRenderer userId={userId} type="qr" />
+          <CodeRenderer userId={userId} type="qr" synodId={synodId} />
         </div>
       </div>
       
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Code-barres</h3>
         <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <CodeRenderer userId={userId} type="barcode" />
+          <CodeRenderer userId={userId} type="barcode" synodId={synodId} />
         </div>
       </div>
       

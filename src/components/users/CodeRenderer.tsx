@@ -2,13 +2,18 @@ import React from 'react';
 import QRCode from 'react-qr-code';
 import ReactBarcode from 'react-barcode';
 import { generateUniqueQRCode, generateUniqueBarcode } from '@/utils/codeGenerators';
+import { useSynodStore } from '@/stores/synodStore';
 
 interface CodeRendererProps {
   userId: string;
   type: 'qr' | 'barcode';
+  synodId?: string;
 }
 
-export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
+export const CodeRenderer = ({ userId, type, synodId }: CodeRendererProps) => {
+  const { synods } = useSynodStore();
+  const synodColor = synods.find(s => s.id === synodId)?.color || '#000000';
+
   if (type === 'qr') {
     return (
       <div className="flex justify-center items-center bg-white rounded-lg p-8">
@@ -16,6 +21,7 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
           value={generateUniqueQRCode(userId)}
           size={200}
           level="L"
+          fgColor={synodColor}
           style={{ 
             height: "auto",
             maxWidth: "100%",
@@ -36,6 +42,7 @@ export const CodeRenderer = ({ userId, type }: CodeRendererProps) => {
         width={2}
         displayValue={true}
         background="#ffffff"
+        lineColor={synodColor}
         format="CODE128"
         textAlign="center"
         textPosition="bottom"
