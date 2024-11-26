@@ -17,7 +17,21 @@ export const CodeDownloader = ({ userId, userName }: CodeDownloaderProps) => {
     const zip = new JSZip();
     
     try {
+      // Create temporary elements for rendering
+      const qrContainer = document.createElement('div');
+      const barcodeContainer = document.createElement('div');
+      
+      qrContainer.style.cssText = 'background: white; padding: 20px; width: 300px; height: 300px;';
+      barcodeContainer.style.cssText = 'background: white; padding: 20px; width: 300px; height: 150px;';
+      
+      document.body.appendChild(qrContainer);
+      document.body.appendChild(barcodeContainer);
+
       const { qrImage, barcodeImage } = await generateCodeImages(userId, userName);
+
+      // Cleanup temporary elements
+      document.body.removeChild(qrContainer);
+      document.body.removeChild(barcodeContainer);
 
       if (!qrImage || !barcodeImage) {
         throw new Error("Erreur lors de la génération des images");
