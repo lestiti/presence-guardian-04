@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +33,7 @@ export const SynodExcelUpload = () => {
         name: row.name || row.Name || row.NOM || "",
         description: row.description || row.Description || row.DESCRIPTION || "",
         color: row.color || row.Color || row.COULEUR || "#10B981",
-      }));
+      })).filter(synod => synod.name.trim() !== "");
 
       return synods;
     } catch (error) {
@@ -45,45 +45,32 @@ export const SynodExcelUpload = () => {
   const uploadFile = async (file: File) => {
     try {
       setIsUploading(true);
-      toast.loading("Import des synodes en cours...");
-
-      // Upload file to Supabase Storage
-      const fileName = `${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("synod_files")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
+      const toastId = toast.loading("Import des synodes en cours...");
 
       // Process Excel data
       const synods = await processExcelFile(file);
-      let importedCount = 0;
+      
+      if (synods.length === 0) {
+        toast.error("Aucun synode valide trouvé dans le fichier");
+        return;
+      }
 
-      // Insert synods into database
-      for (const synod of synods) {
-        if (!synod.name) {
-          console.warn("Synod sans nom trouvé, ignoré");
-          continue;
-        }
+      // Batch insert all synods at once
+      const { error: insertError } = await supabase
+        .from("synods")
+        .insert(synods);
 
-        const { error: insertError } = await supabase
-          .from("synods")
-          .insert([synod]);
-
-        if (insertError) {
-          console.error("Error inserting synod:", insertError);
-          toast.error(`Erreur lors de l'ajout du synode: ${synod.name}`);
-        } else {
-          importedCount++;
-        }
+      if (insertError) {
+        console.error("Error inserting synods:", insertError);
+        toast.error("Erreur lors de l'import des synodes");
+        return;
       }
 
       // Refresh the synods list
       await fetchSynods();
 
-      toast.success(`Import réussi: ${importedCount} synodes importés`);
+      toast.dismiss(toastId);
+      toast.success(`Import réussi: ${synods.length} synodes importés`);
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error("Erreur lors de l'import du fichier");
@@ -116,8 +103,12 @@ export const SynodExcelUpload = () => {
         disabled={isUploading}
       />
       <Button variant="outline" asChild disabled={isUploading}>
-        <label htmlFor="excel-upload" className="cursor-pointer">
-          <Upload className="w-4 h-4 mr-2" />
+        <label htmlFor="excel-upload" className="cursor-pointer flex items-center">
+          {isUploading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4 mr-2" />
+          )}
           {isUploading ? "Import en cours..." : "Importer depuis Excel"}
         </label>
       </Button>
