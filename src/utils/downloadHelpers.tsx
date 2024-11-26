@@ -20,8 +20,15 @@ const generateImage = async (element: HTMLElement): Promise<string> => {
   };
 
   try {
-    // Force white background
+    // Force white background and ensure proper rendering
     element.style.backgroundColor = '#ffffff';
+    element.style.display = 'flex';
+    element.style.justifyContent = 'center';
+    element.style.alignItems = 'center';
+    
+    // Wait a bit for the rendering
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     return await toPng(element, options);
   } catch (error) {
     console.error("Erreur lors de la génération de l'image:", error);
@@ -34,7 +41,7 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
   const barcodeContainer = document.createElement('div');
   
   try {
-    // Style containers with explicit white background
+    // Style containers with explicit white background and proper dimensions
     qrContainer.style.cssText = `
       display: flex;
       justify-content: center;
@@ -43,6 +50,8 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
       padding: 20px;
       width: 300px;
       height: 300px;
+      position: fixed;
+      left: -9999px;
     `;
     
     barcodeContainer.style.cssText = `
@@ -53,7 +62,13 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
       padding: 20px;
       width: 300px;
       height: 150px;
+      position: fixed;
+      left: -9999px;
     `;
+
+    // Add containers to document body
+    document.body.appendChild(qrContainer);
+    document.body.appendChild(barcodeContainer);
 
     // Generate QR code
     const qrValue = generateUniqueQRCode(userId);
@@ -71,19 +86,20 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
     });
     qrContainer.innerHTML = ReactDOMServer.renderToString(qrElement);
 
-    // Generate barcode
+    // Generate barcode with specific dimensions matching the preview
     const barcodeValue = generateUniqueBarcode(userId);
     const barcodeElement = createElement(ReactBarcode, {
       value: barcodeValue,
-      height: 100,
-      width: 2,
+      height: 80,
+      width: 1.5,
       displayValue: true,
       background: "#ffffff",
       format: "CODE128",
       textAlign: "center",
       textPosition: "bottom",
       textMargin: 8,
-      margin: 20
+      margin: 10,
+      fontSize: 14
     });
     barcodeContainer.innerHTML = ReactDOMServer.renderToString(barcodeElement);
 
@@ -97,6 +113,10 @@ export const generateCodeImages = async (userId: string, userName: string): Prom
   } catch (error) {
     console.error("Erreur lors de la génération des images:", error);
     throw error;
+  } finally {
+    // Clean up
+    if (qrContainer.parentNode) qrContainer.parentNode.removeChild(qrContainer);
+    if (barcodeContainer.parentNode) barcodeContainer.parentNode.removeChild(barcodeContainer);
   }
 };
 
