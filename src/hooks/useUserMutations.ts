@@ -40,13 +40,18 @@ export const useCreateUser = () => {
         throw new Error("Données utilisateur invalides");
       }
 
-      const { data: existingUser } = await supabase
+      // Check for existing user with the same phone number
+      const { data: existingUsers, error: searchError } = await supabase
         .from("users")
         .select("id")
-        .eq("phone", userData.phone.trim())
-        .single();
+        .eq("phone", userData.phone.trim());
 
-      if (existingUser) {
+      if (searchError) {
+        console.error("Error checking existing user:", searchError);
+        throw new Error("Erreur lors de la vérification du numéro de téléphone");
+      }
+
+      if (existingUsers && existingUsers.length > 0) {
         throw new Error("Un utilisateur avec ce numéro de téléphone existe déjà");
       }
 
@@ -88,14 +93,19 @@ export const useUpdateUser = () => {
         throw new Error("Données utilisateur invalides");
       }
 
-      const { data: existingUser } = await supabase
+      // Check for existing user with the same phone number, excluding current user
+      const { data: existingUsers, error: searchError } = await supabase
         .from("users")
         .select("id")
         .eq("phone", userData.phone.trim())
-        .neq("id", id)
-        .single();
+        .neq("id", id);
 
-      if (existingUser) {
+      if (searchError) {
+        console.error("Error checking existing user:", searchError);
+        throw new Error("Erreur lors de la vérification du numéro de téléphone");
+      }
+
+      if (existingUsers && existingUsers.length > 0) {
         throw new Error("Un utilisateur avec ce numéro de téléphone existe déjà");
       }
 
