@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { ScanType, ScanRecord } from "@/types/attendance";
 import { useScanDevice } from "./ScanDeviceManager";
@@ -34,6 +34,9 @@ export const ScanDialog = ({
     existingScans
   });
 
+  const [barcodeBuffer, setBarcodeBuffer] = useState<string>("");
+  const [lastScanTime, setLastScanTime] = useState<number>(0);
+
   // Reset scanning state when dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -41,6 +44,7 @@ export const ScanDialog = ({
       console.log("Dialog opened, scanning started");
     } else {
       setIsScanning(false);
+      setBarcodeBuffer("");
       console.log("Dialog closed, scanning stopped");
     }
   }, [open]);
@@ -71,44 +75,77 @@ export const ScanDialog = ({
     }
   };
 
-  // Handle physical barcode scanners
+  // Improved barcode handling with debounce and validation
+  const processBarcodeInput = useCallback(async (code: string) => {
+    const currentTime = Date.now();
+    const MINIMUM_SCAN_INTERVAL = 1000; // 1 second minimum between scans
+
+    if (currentTime - lastScanTime < MINIMUM_SCAN_INTERVAL) {
+      console.log("Scan ignored - too soon after last scan");
+      return;
+    }
+
+    if (!code.trim() || code.length < 3) {
+      console.log("Invalid barcode - too short or empty");
+      return;
+    }
+
+    setLastScanTime(currentTime);
+    console.log("Processing barcode:", code);
+    await handleSuccessfulScan(code, "BARCODE");
+    setBarcodeBuffer("");
+  }, [handleSuccessfulScan, lastScanTime]);
+
+  // Enhanced physical barcode scanner handling
   useEffect(() => {
-    let currentCode = "";
-    let lastKeyTime = Date.now();
-    const SCANNER_TIMEOUT = 50;
+    const BARCODE_TIMEOUT = 30; // Timeout in ms between keystrokes
 
-    const handleKeyPress = async (event: KeyboardEvent) => {
-      if (!isScanning || processingCode) {
-        console.log("Barcode scan ignored - scanning disabled or processing in progress");
+    let keypressTimer: NodeJS.Timeout;
+
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (!isScanning || processingCode || scanType !== "BARCODE") {
         return;
       }
 
-      const currentTime = Date.now();
-      if (currentTime - lastKeyTime > SCANNER_TIMEOUT) {
-        currentCode = "";
-      }
-      lastKeyTime = currentTime;
-
-      if (event.key === "Enter" && currentCode) {
-        console.log("Barcode detected:", currentCode);
-        await handleSuccessfulScan(currentCode, "BARCODE");
-        currentCode = "";
+      // Prevent default behavior for Enter key to avoid form submissions
+      if (event.key === "Enter") {
+        event.preventDefault();
+        
+        if (barcodeBuffer.trim()) {
+          processBarcodeInput(barcodeBuffer);
+        }
         return;
       }
 
-      currentCode += event.key;
+      // Clear timeout if it exists
+      if (keypressTimer) {
+        clearTimeout(keypressTimer);
+      }
+
+      // Add character to buffer
+      setBarcodeBuffer(prev => prev + event.key);
+
+      // Set new timeout
+      keypressTimer = setTimeout(() => {
+        if (barcodeBuffer.length > 0) {
+          processBarcodeInput(barcodeBuffer);
+        }
+      }, BARCODE_TIMEOUT);
     };
 
-    if (isScanning) {
+    if (isScanning && scanType === "BARCODE") {
       window.addEventListener("keypress", handleKeyPress);
       console.log("Barcode scanner listener activated");
     }
 
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
+      if (keypressTimer) {
+        clearTimeout(keypressTimer);
+      }
       console.log("Barcode scanner listener deactivated");
     };
-  }, [isScanning, handleSuccessfulScan, processingCode]);
+  }, [isScanning, processingCode, scanType, barcodeBuffer, processBarcodeInput]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -125,6 +162,7 @@ export const ScanDialog = ({
             scanType={scanType}
             onScanTypeChange={(type) => {
               setScanType(type);
+              setBarcodeBuffer("");
               console.log("Scan type changed to:", type);
             }}
           />
