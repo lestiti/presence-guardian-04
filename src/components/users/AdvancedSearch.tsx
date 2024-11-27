@@ -26,8 +26,8 @@ interface AdvancedSearchProps {
 export const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
   const [searchParams, setSearchParams] = useState({
     searchTerm: "",
-    role: "",
-    synodId: "",
+    role: "all",
+    synodId: "all",
     dateRange: {
       start: null as Date | null,
       end: null as Date | null,
@@ -77,7 +77,7 @@ export const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
                 <SelectValue placeholder="Sélectionner une fonction" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous</SelectItem>
+                <SelectItem value="all">Tous</SelectItem>
                 <SelectItem value="MPIOMANA">Mpiomana</SelectItem>
                 <SelectItem value="MPIANDRY">Mpiandry</SelectItem>
                 <SelectItem value="MPAMPIANATRA">Mpampianatra</SelectItem>
