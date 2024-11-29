@@ -13,3 +13,4 @@
 
 [build.processing]
   skip_processing = false
+  minify = true
