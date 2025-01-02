@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Toaster } from "@/components/ui/sonner";
 import { Suspense, lazy, useEffect } from "react";
 import { LoadingSpinner } from "@/components/ui/loading";
+import { supabase } from "@/integrations/supabase/client";
 
 // Lazy load pages with preloading
 const Index = lazy(() => import("@/pages/Index"));
@@ -11,10 +12,11 @@ const Synods = lazy(() => import("@/pages/Synods"));
 const Attendance = lazy(() => import("@/pages/Attendance"));
 const Reports = lazy(() => import("@/pages/Reports"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const Auth = lazy(() => import("@/pages/Auth"));
 
 // Preload components
 const preloadComponents = () => {
-  const components = [Index, Users, Synods, Attendance, Reports, Settings];
+  const components = [Index, Users, Synods, Attendance, Reports, Settings, Auth];
   components.forEach(component => {
     // @ts-ignore - TypeScript doesn't know about the _payload property
     component._payload?._result?.preload?.();
@@ -44,6 +46,7 @@ function App() {
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/auth" element={<Auth />} />
             {/* Catch all route for 404 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
