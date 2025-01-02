@@ -19,11 +19,20 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
   const [playError] = useSound("/sounds/error.mp3", { volume: 0.25 });
 
   const handleSuccessfulScan = async (code: string, type: ScanType) => {
-    if (processingCode) return;
+    if (processingCode) {
+      console.log("Scan ignored - already processing a code");
+      return;
+    }
     
     setProcessingCode(true);
+    console.log("Processing scan:", { code, type, direction });
     
     try {
+      // Vérifier si le code est valide
+      if (!code || code.trim() === "") {
+        throw new Error("Code QR invalide");
+      }
+
       const newScan: Omit<ScanRecord, "id"> = {
         user_id: code,
         attendance_id: attendance?.id || "default",
@@ -33,10 +42,12 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
         created_at: new Date().toISOString()
       };
 
+      console.log("Validating scan...");
       const validation = validateScan(newScan, existingScans);
 
       if (validation.isValid) {
-        // Enregistrer le scan dans Supabase
+        console.log("Scan validation successful, saving to database...");
+        
         const { data, error } = await supabase
           .from('scans')
           .insert([newScan])
@@ -44,37 +55,32 @@ export const useScanHandler = ({ onScanSuccess, attendance, direction, existingS
           .single();
 
         if (error) {
-          console.error("Erreur lors de l'enregistrement du scan:", error);
-          playError();
-          toast.error("Erreur lors de l'enregistrement du scan");
-          return;
+          console.error("Database error:", error);
+          throw new Error("Erreur lors de l'enregistrement du scan");
         }
 
+        console.log("Scan saved successfully:", data);
         playSuccess();
         await onScanSuccess(newScan);
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 300);
+        setTimeout(() => setShowSuccess(false), 1000);
 
-        // Afficher un message spécifique pour l'entrée ou la sortie
         const actionMessage = direction === "IN" ? "Entrée" : "Sortie";
         toast.success(`${actionMessage} enregistrée avec succès`, {
           description: `Scan ${type} enregistré à ${new Date().toLocaleTimeString()}`
         });
-
-        // Vérifier dans la console que le scan a bien été enregistré
-        console.log("Scan enregistré:", data);
       } else {
-        playError();
-        toast.error(validation.message);
+        throw new Error(validation.message);
       }
     } catch (error) {
-      console.error("Erreur lors du scan:", error);
-      toast.error("Erreur lors du scan");
+      console.error("Error processing scan:", error);
       playError();
+      toast.error(error instanceof Error ? error.message : "Erreur lors du scan");
     } finally {
       setTimeout(() => {
         setProcessingCode(false);
-      }, 100);
+        console.log("Scan processing completed");
+      }, 1000);
     }
   };
 
